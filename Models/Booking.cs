@@ -11,7 +11,7 @@ namespace StarEventsTicketingSystem.Models
         public int BookingID { get; set; }
 
         [Required]
-        public int UserID { get; set; }   // Foreign key to User
+        public string UserID { get; set; }   // Foreign key to User
 
         [Required]
         public int EventID { get; set; }  // Foreign key to Event
@@ -24,19 +24,19 @@ namespace StarEventsTicketingSystem.Models
         public decimal TotalAmount { get; set; }
 
         [MaxLength(20)]
-        public string Status { get; set; } // e.g., Confirmed, Pending, Cancelled
+        public required string Status { get; set; } // e.g., Confirmed, Pending, Cancelled
 
         // Navigation properties
         [ForeignKey("UserID")]
-        public virtual User User { get; set; }
+        public required virtual ApplicationUser User { get; set; }
 
         [ForeignKey("EventID")]
-        public virtual Event Event { get; set; }
+        public required virtual Event Event { get; set; }
 
         // One Booking can have many Tickets
-        public virtual ICollection<Ticket> Tickets { get; set; }
+        public required virtual ICollection<Ticket> Tickets { get; set; }
 
         // One Booking has one Payment
-        public virtual Payment Payment { get; set; }
+        public required virtual Payment Payment { get; set; }
     }
 }

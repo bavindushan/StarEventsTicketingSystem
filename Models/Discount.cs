@@ -13,7 +13,7 @@ namespace StarEventsTicketingSystem.Models
         public int EventID { get; set; } // Foreign key to Event
 
         [Required, MaxLength(50)]
-        public string Code { get; set; } // Discount code
+        public required string Code { get; set; } // Discount code
 
         [Required]
         [Range(0, 100)]
@@ -28,6 +28,6 @@ namespace StarEventsTicketingSystem.Models
 
         // Navigation property: One Event can have many Discounts
         [ForeignKey("EventID")]
-        public virtual Event Event { get; set; }
+        public required virtual Event Event { get; set; }
     }
 }

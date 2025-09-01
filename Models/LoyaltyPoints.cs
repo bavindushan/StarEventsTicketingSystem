@@ -10,7 +10,7 @@ namespace StarEventsTicketingSystem.Models
         public int LoyaltyID { get; set; }
 
         [Required]
-        public int UserID { get; set; }  // FK → User.UserID (only for Customers)
+        public string UserID { get; set; }  // FK → User.UserID (only for Customers)
 
         [Required]
         public int Points { get; set; }  // Current loyalty points
@@ -20,6 +20,6 @@ namespace StarEventsTicketingSystem.Models
 
         // Navigation property
         [ForeignKey(nameof(UserID))]
-        public virtual User User { get; set; }
+        public virtual ApplicationUser? User { get; set; }
     }
 }

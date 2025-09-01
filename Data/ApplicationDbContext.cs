@@ -1,17 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using StarEventsTicketingSystem.Models;
 
 namespace StarEventsTicketingSystem.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // DbSets for all entities
-        public DbSet<User> Users { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Venue> Venues { get; set; }
         public DbSet<Booking> Bookings { get; set; }
@@ -36,15 +35,15 @@ namespace StarEventsTicketingSystem.Data
                 .Property(d => d.DiscountPercentage)
                 .HasColumnType("decimal(18,2)");
 
-            // User 1:1 LoyaltyPoints
-            modelBuilder.Entity<User>()
+            // ApplicationUser 1:1 LoyaltyPoints
+            modelBuilder.Entity<ApplicationUser>()
                 .HasOne(u => u.LoyaltyPoints)
                 .WithOne(lp => lp.User)
                 .HasForeignKey<LoyaltyPoints>(lp => lp.UserID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // User 1:M Events (Organizer) - Restrict to avoid multiple cascade paths
-            modelBuilder.Entity<User>()
+            // ApplicationUser 1:M Events (Organizer)
+            modelBuilder.Entity<ApplicationUser>()
                 .HasMany(u => u.Events)
                 .WithOne(e => e.Organizer)
                 .HasForeignKey(e => e.OrganizerID)
@@ -85,22 +84,21 @@ namespace StarEventsTicketingSystem.Data
                 .HasForeignKey(bh => bh.TicketID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // User 1:M BookingHistories
-            modelBuilder.Entity<User>()
+            // ApplicationUser 1:M BookingHistories
+            modelBuilder.Entity<ApplicationUser>()
                 .HasMany(u => u.BookingHistories)
                 .WithOne(bh => bh.User)
                 .HasForeignKey(bh => bh.UserID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // User 1:M AuditLogs
-            modelBuilder.Entity<User>()
+            // ApplicationUser 1:M AuditLogs
+            modelBuilder.Entity<ApplicationUser>()
                 .HasMany(u => u.AuditLogs)
                 .WithOne(a => a.User)
                 .HasForeignKey(a => a.UserID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Event → Venue already configured above with SetNull
-            // Booking → User (restrict cascade to avoid multiple cascade paths)
+            // Booking → ApplicationUser
             modelBuilder.Entity<Booking>()
                 .HasOne(b => b.User)
                 .WithMany(u => u.Bookings)

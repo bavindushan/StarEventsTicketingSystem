@@ -9,13 +9,13 @@ namespace StarEventsTicketingSystem.Models
         public int VenueID { get; set; }
 
         [Required, MaxLength(150)]
-        public string VenueName { get; set; }
+        public required string VenueName { get; set; }
 
         [MaxLength(250)]
-        public string Address { get; set; }
+        public required string Address { get; set; }
 
         [MaxLength(100)]
-        public string City { get; set; }
+        public required string City { get; set; }
 
         [Required]
         public int Capacity { get; set; }  // Changed from string to int for proper seat count

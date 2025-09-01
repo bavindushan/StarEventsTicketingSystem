@@ -17,16 +17,16 @@ namespace StarEventsTicketingSystem.Models
         public decimal Amount { get; set; }
 
         [Required, MaxLength(50)]
-        public string PaymentMethod { get; set; } // e.g., CreditCard, PayPal, BankTransfer
+        public required string PaymentMethod { get; set; } // e.g., CreditCard, PayPal, BankTransfer
 
         [Required]
         public DateTime PaymentDate { get; set; }
 
         [Required, MaxLength(20)]
-        public string PaymentStatus { get; set; } // e.g., Success, Failed, Pending
+        public required string PaymentStatus { get; set; } // e.g., Success, Failed, Pending
 
         // Navigation property
         [ForeignKey(nameof(BookingID))]
-        public virtual Booking Booking { get; set; }
+        public required virtual Booking Booking { get; set; }
     }
 }

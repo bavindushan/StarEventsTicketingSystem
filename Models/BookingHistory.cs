@@ -11,7 +11,7 @@ namespace StarEventsTicketingSystem.Models
         public int HistoryID { get; set; }
 
         [Required]
-        public int UserID { get; set; }  // FK → User.UserID
+        public string UserID { get; set; }  // FK → User.UserID
 
         [Required]
         public int TicketID { get; set; }  // FK → Ticket.TicketID
@@ -25,9 +25,9 @@ namespace StarEventsTicketingSystem.Models
         // Navigation properties
 
         [ForeignKey("UserID")]
-        public virtual User User { get; set; }
+        public required virtual ApplicationUser User { get; set; }
 
         [ForeignKey("TicketID")]
-        public virtual Ticket Ticket { get; set; }
+        public required virtual Ticket Ticket { get; set; }
     }
 }
