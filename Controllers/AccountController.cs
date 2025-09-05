@@ -66,9 +66,11 @@ namespace StarEventsTicketingSystem.Controllers
                     await _roleManager.CreateAsync(new IdentityRole(model.Role));
                 }
                 await _userManager.AddToRoleAsync(user, model.Role);
-                await _signInManager.SignInAsync(user, isPersistent: false);
+                //await _signInManager.SignInAsync(user, isPersistent: false);
 
-                return RedirectToAction("Index", "Home");
+                //return RedirectToAction("Index", "Home");
+
+                return RedirectToAction("Login", "Account");
             }
 
             foreach (var error in result.Errors)
