@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Customer Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Customer Dashboard</h2>
+
+    <div class="row">
+        <!-- Events -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg rounded-4">
+                <div class="card-body text-center">
+                    <h4 class="card-title">🎫 Browse Events</h4>
+                    <p class="card-text">Search events by date, venue and book tickets online.</p>
+                    <a href="@Url.Action("Events", "CustomerDashboard")" class="btn btn-primary">View Events</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking History -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg rounded-4">
+                <div class="card-body text-center">
+                    <h4 class="card-title">📜 Booking History</h4>
+                    <p class="card-text">See your past and upcoming event tickets.</p>
+                    <a href="@Url.Action("BookingHistory", "CustomerDashboard")" class="btn btn-success">View History</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg rounded-4">
+                <div class="card-body text-center">
+                    <h4 class="card-title">👤 Profile</h4>
+                    <p class="card-text">Manage personal details and account settings.</p>
+                    <a href="@Url.Action("Profile", "CustomerDashboard")" class="btn btn-warning">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg rounded-4">
+                <div class="card-body text-center">
+                    <h4 class="card-title">🚪 Logout</h4>
+                    <p class="card-text">Securely logout from your account.</p>
+                    <form method="post" action="@Url.Action("Logout", "Account")">
+                        <button type="submit" class="btn btn-danger">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

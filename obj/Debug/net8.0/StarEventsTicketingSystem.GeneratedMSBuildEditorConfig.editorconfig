@@ -28,12 +28,48 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Admin/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Admin/ManageEvents.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTWFuYWdlRXZlbnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Admin/ManageVenues.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cTWFuYWdlVmVudWVzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Admin/Settings.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cU2V0dGluZ3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Customer/Dashboard/BookingHistory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRGFzaGJvYXJkXEJvb2tpbmdIaXN0b3J5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Customer/Dashboard/Events.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRGFzaGJvYXJkXEV2ZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Customer/Dashboard/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Customer/Dashboard/Profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcRGFzaGJvYXJkXFByb2ZpbGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Organizer/Dashboard/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3JnYW5pemVyXERhc2hib2FyZFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Bavindu Shan/Documents/Top-Up(BEng. Hons Software Engineering)/AD/Assignments/CW-2/Project/StarEventsTicketingSystem/Views/Shared/Error.cshtml]

@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
+
+    <div class="row g-4">
+        <!-- Manage Events Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-calendar-event display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Manage Events</h5>
+                    <p class="card-text">Add, edit, or remove events in the system.</p>
+                    <a asp-controller="Admin" asp-action="ManageEvents" class="btn btn-primary fw-semibold">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Venues Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-building display-4 text-success mb-3"></i>
+                    <h5 class="card-title">Manage Venues</h5>
+                    <p class="card-text">Add or edit venues where events take place.</p>
+                    <a asp-controller="Admin" asp-action="ManageVenues" class="btn btn-success fw-semibold">Go</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Admin Features -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-gear display-4 text-warning mb-3"></i>
+                    <h5 class="card-title">System Settings</h5>
+                    <p class="card-text">Configure global system settings and permissions.</p>
+                    <a href="#" class="btn btn-warning fw-semibold">Go</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

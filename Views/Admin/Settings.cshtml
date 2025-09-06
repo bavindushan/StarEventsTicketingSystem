@@ -1,0 +1,62 @@
+﻿@model StarEventsTicketingSystem.ViewModels.ChangePasswordViewModel
+
+@{
+    ViewData["Title"] = "Admin Settings - Change Password";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">🔒 Change Password</h2>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <form asp-action="Settings" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <!-- Current Password -->
+                <div class="mb-3">
+                    <label asp-for="CurrentPassword" class="form-label"></label>
+                    <input asp-for="CurrentPassword" class="form-control" />
+                    <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                </div>
+
+                <!-- New Password -->
+                <div class="mb-3">
+                    <label asp-for="NewPassword" class="form-label"></label>
+                    <input asp-for="NewPassword" class="form-control" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div class="mb-3">
+                    <label asp-for="ConfirmNewPassword" class="form-label"></label>
+                    <input asp-for="ConfirmNewPassword" class="form-control" />
+                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Update Password</button>
+            </form>
+
+            <!-- Success message -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success mt-3">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <!-- Error message -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger mt-3">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

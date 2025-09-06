@@ -38,7 +38,7 @@ namespace StarEventsTicketingSystem.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            if (!Enum.TryParse<StarEventsTicketingSystem.Enums.Role>(model.Role, out var userRole))
+            if (string.IsNullOrEmpty(model.Role))
             {
                 ModelState.AddModelError("Role", "Invalid role selected.");
                 return View(model);
@@ -51,7 +51,6 @@ namespace StarEventsTicketingSystem.Controllers
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Address = model.Address,
-                Role = userRole,
                 LoyaltyPoints = new LoyaltyPoints { Points = 0 },
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -66,9 +65,6 @@ namespace StarEventsTicketingSystem.Controllers
                     await _roleManager.CreateAsync(new IdentityRole(model.Role));
                 }
                 await _userManager.AddToRoleAsync(user, model.Role);
-                //await _signInManager.SignInAsync(user, isPersistent: false);
-
-                //return RedirectToAction("Index", "Home");
 
                 return RedirectToAction("Login", "Account");
             }
@@ -88,7 +84,6 @@ namespace StarEventsTicketingSystem.Controllers
             return View();
         }
 
-        // POST: /Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -102,7 +97,28 @@ namespace StarEventsTicketingSystem.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Home");
+                // Get the logged-in user
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    await _signInManager.SignOutAsync();
+                    ModelState.AddModelError(string.Empty, "User not found.");
+                    return View(model);
+                }
+
+                // Get roles
+                var roles = await _userManager.GetRolesAsync(user);
+
+                // Redirect based on role
+                if (roles.Contains("Admin"))
+                    return RedirectToAction("Dashboard", "Admin");
+                else if (roles.Contains("Organizer"))
+                    return RedirectToAction("Index", "OrganizerDashboard");
+                else if (roles.Contains("Customer"))
+                    return RedirectToAction("Index", "CustomerDashboard");
+                else
+                    return RedirectToAction("Index", "Home");
+
             }
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");

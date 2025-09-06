@@ -11,7 +11,6 @@ namespace StarEventsTicketingSystem.Models
         // Additional properties
         public required string FullName { get; set; }
         public required string Address { get; set; }
-        public Role Role { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
