@@ -35,6 +35,8 @@ C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assig
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\Microsoft.SqlServer.Server.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\Mono.TextTemplating.dll
+C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\PagedList.Core.dll
+C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\PagedList.Core.Mvc.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\System.CodeDom.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\System.Composition.AttributedModel.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\System.Composition.Convention.dll
@@ -141,5 +143,3 @@ C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assig
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\obj\Debug\net8.0\StarEventsTicketingSystem.pdb
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\obj\Debug\net8.0\StarEventsTicketingSystem.genruntimeconfig.cache
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\obj\Debug\net8.0\ref\StarEventsTicketingSystem.dll
-C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\PagedList.Core.dll
-C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\PagedList.Core.Mvc.dll
