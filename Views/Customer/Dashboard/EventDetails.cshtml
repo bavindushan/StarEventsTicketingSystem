@@ -1,0 +1,38 @@
+﻿@model StarEventsTicketingSystem.Models.Event
+
+@{
+    ViewData["Title"] = "Event Details";
+}
+
+<div class="container py-5">
+    <h2>@Model.EventName</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <p><strong>Category:</strong> @Model.Category</p>
+            <p><strong>Date:</strong> @Model.Date.ToString("dddd, dd MMMM yyyy")</p>
+            <p><strong>Location:</strong> @Model.Location</p>
+            <p>
+                <strong>Venue:</strong> @(Model.Venue != null ? Model.Venue.VenueName : "Not specified")
+            </p>
+
+            <p>
+                <strong>Capacity:</strong> @(Model.Venue != null ? Model.Venue.Capacity : 0)
+            </p>
+            <p><strong>Description:</strong> @Model.Description</p>
+            <p><strong>Ticket Price:</strong> LKR @Model.TicketPrice.ToString("N2")</p>
+        </div>
+        <div class="col-md-4">
+            <h4>Book Tickets</h4>
+            <form asp-action="BookEvent" asp-controller="CustomerDashboard" method="post">
+                <input type="hidden" name="EventID" value="@Model.EventID" />
+                <div class="mb-3">
+                    <label for="Quantity" class="form-label">Quantity</label>
+                    <input type="number" class="form-control" id="Quantity" name="Quantity" min="1" max="@Model.Venue?.Capacity ?? 1" value="1" required />
+                </div>
+                <button type="submit" class="btn btn-primary">Book Now</button>
+            </form>
+        </div>
+    </div>
+</div>

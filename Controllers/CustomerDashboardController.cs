@@ -107,7 +107,10 @@ namespace StarEventsTicketingSystem.Controllers
         // GET: /CustomerDashboard/EventDetails/{id}
         public async Task<IActionResult> EventDetails(int id)
         {
-            var ev = await _context.Events.FirstOrDefaultAsync(e => e.EventID == id);
+            var ev = await _context.Events
+                .Include(e => e.Venue) // Include Venue details
+                .FirstOrDefaultAsync(e => e.EventID == id);
+
             if (ev == null)
             {
                 return NotFound();
