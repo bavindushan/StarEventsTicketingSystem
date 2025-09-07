@@ -1,6 +1,94 @@
-﻿namespace StarEventsTicketingSystem.Views.Customer.Dashboard
-{
-    public class Events
-    {
-    }
+﻿@model PagedList.Core.IPagedList<StarEventsTicketingSystem.Models.Event>
+@using PagedList.Core.Mvc
+@{
+    ViewBag.Title = "Browse Events";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">🎫 Browse Upcoming Events</h2>
+
+    <!-- Filters -->
+    <form method="get" asp-action="Events" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="dateFilter" class="form-label">Date</label>
+            <input type="date" id="dateFilter" name="searchDate" class="form-control"
+                   value="@(ViewBag.SearchDate ?? "")" />
+        </div>
+
+        <div class="col-md-3">
+            <label for="venueFilter" class="form-label">Venue</label>
+            <select id="venueFilter" name="searchVenue" class="form-select">
+                <option value="">All Venues</option>
+                @foreach (var venue in ViewBag.Venues as List<string>)
+                {
+                    if (venue == (string)ViewBag.SearchVenue)
+                    {
+                        <option value="@venue" selected>@venue</option>
+                    }
+                    else
+                    {
+                        <option value="@venue">@venue</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="organizerFilter" class="form-label">Organizer</label>
+            <select id="organizerFilter" name="searchOrganizer" class="form-select">
+                <option value="">All Organizers</option>
+                @foreach (var organizer in ViewBag.Organizers as List<string>)
+                {
+                    if (organizer == (string)ViewBag.SearchOrganizer)
+                    {
+                        <option value="@organizer" selected>@organizer</option>
+                    }
+                    else
+                    {
+                        <option value="@organizer">@organizer</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- Events Grid -->
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var ev in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100 border-0 rounded-3">
+                        <!-- Fixed default image -->
+                        <img src="~/content/images/default-event.jpg" class="card-img-top" alt="@ev.EventName"
+                             style="height:200px; object-fit:cover;" />
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@ev.EventName</h5>
+                            <p class="card-text"><strong>Date:</strong> @ev.Date.ToString("MMMM dd, yyyy")</p>
+                            <p class="card-text"><strong>Venue:</strong> @ev.Venue</p>
+                            <a asp-action="EventDetails" asp-route-id="@ev.EventID"
+                               class="btn btn-outline-primary mt-auto">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center">
+                <p class="text-muted">No events found.</p>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-4">
+        <pager class="pagination" list="@Model" asp-action="Events" asp-controller="CustomerDashboard" />
+    </div>
+</div>
