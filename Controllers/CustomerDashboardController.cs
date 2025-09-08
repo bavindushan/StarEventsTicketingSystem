@@ -109,6 +109,8 @@ namespace StarEventsTicketingSystem.Controllers
         {
             var ev = await _context.Events
                 .Include(e => e.Venue) // Include Venue details
+                .Include(e => e.Bookings) // Include bookings to calculate tickets
+                    .ThenInclude(b => b.Tickets) // Include tickets for each booking
                 .FirstOrDefaultAsync(e => e.EventID == id);
 
             if (ev == null)
@@ -116,7 +118,16 @@ namespace StarEventsTicketingSystem.Controllers
                 return NotFound();
             }
 
+            // Calculate total booked tickets
+            int totalBookedTickets = ev.Bookings.Sum(b => b.Tickets.Count);
+
+            // Available tickets
+            int availableTickets = (ev.Venue?.Capacity ?? 0) - totalBookedTickets;
+            ViewBag.AvailableTickets = availableTickets;
+
             return View("~/Views/Customer/Dashboard/EventDetails.cshtml", ev);
         }
+
+
     }
 }
