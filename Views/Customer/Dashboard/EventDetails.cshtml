@@ -41,12 +41,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="bookingForm" method="post" asp-action="BookEvent" asp-controller="BookEvent">
-                    <input type="hidden" name="EventID" value="@Model.EventID" />
+                <form id="bookingForm">
+                    <input type="hidden" id="EventID" value="@Model.EventID" />
 
                     <div class="mb-3">
                         <label for="Quantity" class="form-label">Quantity</label>
-                        <input type="number" class="form-control" id="Quantity" name="Quantity"
+                        <input type="number" class="form-control" id="Quantity"
                                min="1"
                                max="@(ViewBag.AvailableTickets ?? 1)"
                                value="1" required />
@@ -57,12 +57,11 @@
 
                     <button type="submit" class="btn btn-success w-100"
                     @((ViewBag.AvailableTickets ?? 0) == 0 ? "disabled" : "")>
-                        Confirm Booking
+                        Confirm & Pay Online
                     </button>
                 </form>
 
                 <hr />
-
                 <h6>Your Previous Bookings for this Event</h6>
                 <ul>
                     @if (ViewBag.UserBookings != null && ViewBag.UserBookings.Count > 0)
@@ -88,8 +87,8 @@
 </div>
 
 @section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
-        // Bootstrap modal trigger
         var bookNowBtn = document.getElementById('btnBookNow');
         var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
 
@@ -97,25 +96,48 @@
             bookingModal.show();
         });
 
-        // Update total amount dynamically
         var ticketPrice = @Model.TicketPrice;
         var quantityInput = document.getElementById('Quantity');
         var totalAmountSpan = document.getElementById('totalAmount');
 
         quantityInput.addEventListener('input', function () {
             var qty = parseInt(quantityInput.value) || 1;
-
-            // Ensure quantity does not exceed available tickets
             var maxTickets = @(ViewBag.AvailableTickets ?? 0);
-            if (qty > maxTickets) {
-                qty = maxTickets;
-                quantityInput.value = qty;
-            } else if (qty < 1) {
-                qty = 1;
-                quantityInput.value = qty;
-            }
-
+            if (qty > maxTickets) qty = maxTickets;
+            if (qty < 1) qty = 1;
+            quantityInput.value = qty;
             totalAmountSpan.textContent = (ticketPrice * qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+
+        // AJAX booking + Stripe payment
+        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var eventId = document.getElementById('EventID').value;
+            var quantity = document.getElementById('Quantity').value;
+
+            // Step 1: Create booking
+            const bookingResponse = await fetch('/BookEvent/Book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                body: JSON.stringify({ eventId: eventId, quantity: quantity })
+            });
+
+            const bookingData = await bookingResponse.json();
+
+            if (bookingData.success) {
+                // Step 2: Create Stripe session
+                const stripeResponse = await fetch(`/Payment/CreateStripeSession?bookingId=${bookingData.bookingId}`);
+                const sessionData = await stripeResponse.json();
+
+                if (sessionData.sessionId) {
+                    var stripe = Stripe('@Your_Stripe_Public_Key_Here');
+                    stripe.redirectToCheckout({ sessionId: sessionData.sessionId });
+                } else {
+                    alert('Failed to initiate payment. Please try again.');
+                }
+            } else {
+                alert(bookingData.message || 'Booking failed');
+            }
         });
     </script>
 }
