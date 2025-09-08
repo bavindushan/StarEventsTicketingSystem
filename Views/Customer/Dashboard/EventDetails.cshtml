@@ -23,7 +23,7 @@
         <div class="col-md-4">
             <h4>Book Tickets</h4>
             <button id="btnBookNow"
-                    class="btn btn-primary"
+                    class="btn btn-primary w-100"
                     data-eventid="@Model.EventID"
             @((ViewBag.AvailableTickets ?? 0) == 0 ? "disabled" : "")>
                 Book Now
@@ -41,7 +41,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="bookingForm" method="post" asp-action="BookEvent" asp-controller="CustomerDashboard">
+                <form id="bookingForm" method="post" asp-action="BookEvent" asp-controller="BookEvent">
                     <input type="hidden" name="EventID" value="@Model.EventID" />
 
                     <div class="mb-3">
@@ -103,12 +103,15 @@
         var totalAmountSpan = document.getElementById('totalAmount');
 
         quantityInput.addEventListener('input', function () {
-            var qty = parseInt(quantityInput.value) || 0;
+            var qty = parseInt(quantityInput.value) || 1;
 
             // Ensure quantity does not exceed available tickets
             var maxTickets = @(ViewBag.AvailableTickets ?? 0);
             if (qty > maxTickets) {
                 qty = maxTickets;
+                quantityInput.value = qty;
+            } else if (qty < 1) {
+                qty = 1;
                 quantityInput.value = qty;
             }
 

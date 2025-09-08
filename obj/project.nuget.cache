@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "hDnMatxJfh8=",
+  "dgSpecHash": "mqbbfCL0cas=",
   "success": true,
   "projectFilePath": "C:\\Users\\Bavindu Shan\\Documents\\Top-Up(BEng. Hons Software Engineering)\\AD\\Assignments\\CW-2\\Project\\StarEventsTicketingSystem\\StarEventsTicketingSystem.csproj",
   "expectedPackageFiles": [
@@ -56,6 +56,7 @@
     "C:\\Users\\Bavindu Shan\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
     "C:\\Users\\Bavindu Shan\\.nuget\\packages\\pagedlist.core\\1.17.4\\pagedlist.core.1.17.4.nupkg.sha512",
     "C:\\Users\\Bavindu Shan\\.nuget\\packages\\pagedlist.core.mvc\\3.0.0\\pagedlist.core.mvc.3.0.0.nupkg.sha512",
+    "C:\\Users\\Bavindu Shan\\.nuget\\packages\\qrcoder\\1.6.0\\qrcoder.1.6.0.nupkg.sha512",
     "C:\\Users\\Bavindu Shan\\.nuget\\packages\\system.codedom\\4.4.0\\system.codedom.4.4.0.nupkg.sha512",
     "C:\\Users\\Bavindu Shan\\.nuget\\packages\\system.collections.immutable\\6.0.0\\system.collections.immutable.6.0.0.nupkg.sha512",
     "C:\\Users\\Bavindu Shan\\.nuget\\packages\\system.composition\\6.0.0\\system.composition.6.0.0.nupkg.sha512",
