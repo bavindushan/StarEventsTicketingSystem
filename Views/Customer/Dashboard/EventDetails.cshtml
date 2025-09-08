@@ -13,12 +13,8 @@
             <p><strong>Category:</strong> @Model.Category</p>
             <p><strong>Date:</strong> @Model.Date.ToString("dddd, dd MMMM yyyy")</p>
             <p><strong>Location:</strong> @Model.Location</p>
-            <p>
-                <strong>Venue:</strong> @(Model.Venue != null ? Model.Venue.VenueName : "Not specified")
-            </p>
-            <p>
-                <strong>Capacity:</strong> @(Model.Venue != null ? Model.Venue.Capacity : 0)
-            </p>
+            <p><strong>Venue:</strong> @(Model.Venue != null ? Model.Venue.VenueName : "Not specified")</p>
+            <p><strong>Capacity:</strong> @(Model.Venue != null ? Model.Venue.Capacity : 0)</p>
             <p><strong>Description:</strong> @Model.Description</p>
             <p><strong>Ticket Price:</strong> LKR @Model.TicketPrice.ToString("N2")</p>
             <p><strong>Available Tickets:</strong> @(ViewBag.AvailableTickets ?? 0)</p>
@@ -36,7 +32,7 @@
     </div>
 </div>
 
-<!-- Placeholder for the booking popup modal -->
+<!-- Booking Modal -->
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -45,8 +41,47 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Booking form content will be loaded here dynamically -->
-                <p>Loading booking form...</p>
+                <form id="bookingForm" method="post" asp-action="BookEvent" asp-controller="CustomerDashboard">
+                    <input type="hidden" name="EventID" value="@Model.EventID" />
+
+                    <div class="mb-3">
+                        <label for="Quantity" class="form-label">Quantity</label>
+                        <input type="number" class="form-control" id="Quantity" name="Quantity"
+                               min="1"
+                               max="@(ViewBag.AvailableTickets ?? 1)"
+                               value="1" required />
+                    </div>
+
+                    <p><strong>Ticket Price:</strong> LKR @Model.TicketPrice.ToString("N2")</p>
+                    <p><strong>Total Amount:</strong> LKR <span id="totalAmount">@Model.TicketPrice.ToString("N2")</span></p>
+
+                    <button type="submit" class="btn btn-success w-100"
+                    @((ViewBag.AvailableTickets ?? 0) == 0 ? "disabled" : "")>
+                        Confirm Booking
+                    </button>
+                </form>
+
+                <hr />
+
+                <h6>Your Previous Bookings for this Event</h6>
+                <ul>
+                    @if (ViewBag.UserBookings != null && ViewBag.UserBookings.Count > 0)
+                    {
+                        foreach (var b in ViewBag.UserBookings)
+                        {
+                            <li>
+                                Booking Date: @b.BookingDate.ToString("dd MMM yyyy"),
+                                Tickets: @b.TicketCount,
+                                Total Amount: LKR @b.TotalAmount.ToString("N2")
+                            </li>
+                        }
+                        <p><strong>Total Amount for all bookings:</strong> LKR @ViewBag.UserTotalAmount.ToString("N2")</p>
+                    }
+                    else
+                    {
+                        <li>No previous bookings.</li>
+                    }
+                </ul>
             </div>
         </div>
     </div>
@@ -54,23 +89,30 @@
 
 @section Scripts {
     <script>
-        document.getElementById('btnBookNow')?.addEventListener('click', function () {
-            var eventId = this.getAttribute('data-eventid');
-            // Open Bootstrap modal
-            var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
-            bookingModal.show();
+        // Bootstrap modal trigger
+        var bookNowBtn = document.getElementById('btnBookNow');
+        var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
 
-            // Here you can dynamically load booking form or details via AJAX if needed
-            document.querySelector('#bookingModal .modal-body').innerHTML = `
-                <form id="bookingForm" method="post" action="/CustomerDashboard/BookEvent">
-                    <input type="hidden" name="EventID" value="${eventId}" />
-                    <div class="mb-3">
-                        <label for="Quantity" class="form-label">Quantity</label>
-                        <input type="number" class="form-control" id="Quantity" name="Quantity" min="1" value="1" required />
-                    </div>
-                    <button type="submit" class="btn btn-success">Confirm Booking</button>
-                </form>
-            `;
+        bookNowBtn.addEventListener('click', function () {
+            bookingModal.show();
+        });
+
+        // Update total amount dynamically
+        var ticketPrice = @Model.TicketPrice;
+        var quantityInput = document.getElementById('Quantity');
+        var totalAmountSpan = document.getElementById('totalAmount');
+
+        quantityInput.addEventListener('input', function () {
+            var qty = parseInt(quantityInput.value) || 0;
+
+            // Ensure quantity does not exceed available tickets
+            var maxTickets = @(ViewBag.AvailableTickets ?? 0);
+            if (qty > maxTickets) {
+                qty = maxTickets;
+                quantityInput.value = qty;
+            }
+
+            totalAmountSpan.textContent = (ticketPrice * qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         });
     </script>
 }

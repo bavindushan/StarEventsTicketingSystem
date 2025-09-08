@@ -108,24 +108,68 @@ namespace StarEventsTicketingSystem.Controllers
         public async Task<IActionResult> EventDetails(int id)
         {
             var ev = await _context.Events
-                .Include(e => e.Venue) // Include Venue details
-                .Include(e => e.Bookings) // Include bookings to calculate tickets
-                    .ThenInclude(b => b.Tickets) // Include tickets for each booking
+                .Include(e => e.Venue)
                 .FirstOrDefaultAsync(e => e.EventID == id);
 
             if (ev == null)
-            {
                 return NotFound();
+
+            // Get current user
+            var user = await _userManager.GetUserAsync(User);
+
+            // Calculate available tickets
+            int bookedTickets = await _context.Tickets
+                .Where(t => t.Booking.EventID == id && t.Status.Equals("Booked"))
+                .CountAsync();
+
+            ViewBag.AvailableTickets = ev.Venue != null ? ev.Venue.Capacity - bookedTickets : 0;
+
+            // Get user’s previous bookings for this event
+            if (user != null)
+            {
+                var userBookings = await _context.Bookings
+                    .Where(b => b.EventID == id && b.UserID == user.Id && b.Status == "Booked")
+                    .Select(b => new
+                    {
+                        b.BookingID,
+                        b.BookingDate,
+                        TicketCount = _context.Tickets.Count(t => t.BookingID == b.BookingID && t.Status.Equals("Booked")),
+                        b.TotalAmount
+                    })
+                    .ToListAsync();
+
+                ViewBag.UserBookings = userBookings;
+                ViewBag.UserTotalAmount = userBookings.Sum(b => b.TotalAmount);
             }
 
-            // Calculate total booked tickets
-            int totalBookedTickets = ev.Bookings.Sum(b => b.Tickets.Count);
-
-            // Available tickets
-            int availableTickets = (ev.Venue?.Capacity ?? 0) - totalBookedTickets;
-            ViewBag.AvailableTickets = availableTickets;
-
             return View("~/Views/Customer/Dashboard/EventDetails.cshtml", ev);
+        }
+
+        // GET: /CustomerDashboard/GetBookingDetails/{eventId}
+        [HttpGet]
+        public async Task<IActionResult> GetBookingDetails(int eventId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            // Get all bookings for this user and event
+            var bookings = await _context.Bookings
+                .Where(b => b.EventID == eventId && b.UserID == user.Id)
+                .Include(b => b.Tickets)
+                .ToListAsync();
+
+            // Calculate total amount booked by this user
+            var totalAmount = bookings.Sum(b => b.TotalAmount);
+
+            // Pass data to partial view
+            ViewBag.TotalAmount = totalAmount;
+            ViewBag.EventID = eventId;
+            ViewBag.AvailableTickets = Math.Max(0, (await _context.Events.Include(e => e.Venue)
+                                                 .FirstOrDefaultAsync(e => e.EventID == eventId))
+                                                 ?.Venue.Capacity - await _context.Tickets
+                                                 .Where(t => t.Booking.EventID == eventId)
+                                                 .CountAsync() ?? 0);
+
+            return PartialView("_BookingPopup", bookings);
         }
 
 
