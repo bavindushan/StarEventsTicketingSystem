@@ -79,6 +79,10 @@
             "QRCoder": {
               "target": "Package",
               "version": "[1.6.0, )"
+            },
+            "Stripe.net": {
+              "target": "Package",
+              "version": "[48.5.0, )"
             }
           },
           "imports": [

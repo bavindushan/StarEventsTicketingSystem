@@ -4,6 +4,17 @@ using StarEventsTicketingSystem.Data;
 using StarEventsTicketingSystem.Models;
 using StarEventsTicketingSystem.Utilities;
 
+var builder1 = WebApplication.CreateBuilder(args);
+
+// Bind Stripe section to configuration
+builder1.Services.Configure<StripeSettings>(builder1.Configuration.GetSection("Stripe"));
+
+var stripeSettings = builder1.Configuration.GetSection("Stripe");
+builder1.Services.Configure<StripeSettings>(stripeSettings);
+
+Stripe.StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container

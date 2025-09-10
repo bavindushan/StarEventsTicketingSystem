@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using StarEventsTicketingSystem.Data;
 using StarEventsTicketingSystem.Models;
+using StarEventsTicketingSystem.Enums;
+using PagedList.Core;
 using System;
 using System.Linq;
-using PagedList.Core;
 using System.Threading.Tasks;
 
 namespace StarEventsTicketingSystem.Controllers
@@ -16,11 +18,16 @@ namespace StarEventsTicketingSystem.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly StripeSettings _stripeSettings;
 
-        public CustomerDashboardController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        public CustomerDashboardController(
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context,
+            IOptions<StripeSettings> stripeSettings)
         {
             _userManager = userManager;
             _context = context;
+            _stripeSettings = stripeSettings.Value;
         }
 
         // GET: /CustomerDashboard/Index
@@ -75,15 +82,15 @@ namespace StarEventsTicketingSystem.Controllers
             ViewBag.SearchVenue = searchVenue;
             ViewBag.SearchOrganizer = searchOrganizer;
 
-            // Pass dropdown data to view as string lists
+            // Dropdown data
             ViewBag.Venues = _context.Events
-                .Select(e => e.Venue.VenueName)  // get the string property
+                .Select(e => e.Venue.VenueName)
                 .Distinct()
                 .OrderBy(v => v)
                 .ToList();
 
             ViewBag.Organizers = _context.Events
-                .Select(e => e.Organizer.FullName)  // get the string property
+                .Select(e => e.Organizer.FullName)
                 .Distinct()
                 .OrderBy(o => o)
                 .ToList();
@@ -114,17 +121,17 @@ namespace StarEventsTicketingSystem.Controllers
             if (ev == null)
                 return NotFound();
 
-            // Get current user
             var user = await _userManager.GetUserAsync(User);
 
             // Calculate available tickets
             int bookedTickets = await _context.Tickets
-                .Where(t => t.Booking.EventID == id && t.Status.Equals("Booked"))
+                .Where(t => t.Booking.EventID == id && t.Status == TicketStatus.Booked)
                 .CountAsync();
 
             ViewBag.AvailableTickets = ev.Venue != null ? ev.Venue.Capacity - bookedTickets : 0;
+            ViewBag.StripePublicKey = _stripeSettings.PublishableKey; // ✅ Pass public key
 
-            // Get user’s previous bookings for this event
+            // Get user’s previous bookings
             if (user != null)
             {
                 var userBookings = await _context.Bookings
@@ -133,7 +140,7 @@ namespace StarEventsTicketingSystem.Controllers
                     {
                         b.BookingID,
                         b.BookingDate,
-                        TicketCount = _context.Tickets.Count(t => t.BookingID == b.BookingID && t.Status.Equals("Booked")),
+                        TicketCount = _context.Tickets.Count(t => t.BookingID == b.BookingID && t.Status == TicketStatus.Booked),
                         b.TotalAmount
                     })
                     .ToListAsync();
@@ -151,27 +158,25 @@ namespace StarEventsTicketingSystem.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            // Get all bookings for this user and event
             var bookings = await _context.Bookings
                 .Where(b => b.EventID == eventId && b.UserID == user.Id)
                 .Include(b => b.Tickets)
                 .ToListAsync();
 
-            // Calculate total amount booked by this user
             var totalAmount = bookings.Sum(b => b.TotalAmount);
 
-            // Pass data to partial view
+            var eventEntity = await _context.Events.Include(e => e.Venue)
+                .FirstOrDefaultAsync(e => e.EventID == eventId);
+
+            var bookedTickets = await _context.Tickets
+                .Where(t => t.Booking.EventID == eventId)
+                .CountAsync();
+
             ViewBag.TotalAmount = totalAmount;
             ViewBag.EventID = eventId;
-            ViewBag.AvailableTickets = Math.Max(0, (await _context.Events.Include(e => e.Venue)
-                                                 .FirstOrDefaultAsync(e => e.EventID == eventId))
-                                                 ?.Venue.Capacity - await _context.Tickets
-                                                 .Where(t => t.Booking.EventID == eventId)
-                                                 .CountAsync() ?? 0);
+            ViewBag.AvailableTickets = Math.Max(0, (eventEntity?.Venue.Capacity ?? 0) - bookedTickets);
 
             return PartialView("_BookingPopup", bookings);
         }
-
-
     }
 }

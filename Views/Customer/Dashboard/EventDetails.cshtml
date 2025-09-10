@@ -16,7 +16,7 @@
             <p><strong>Venue:</strong> @(Model.Venue != null ? Model.Venue.VenueName : "Not specified")</p>
             <p><strong>Capacity:</strong> @(Model.Venue != null ? Model.Venue.Capacity : 0)</p>
             <p><strong>Description:</strong> @Model.Description</p>
-            <p><strong>Ticket Price:</strong> LKR @Model.TicketPrice.ToString("N2")</p>
+            <p><strong>Ticket Price:</strong> USD @Model.TicketPrice.ToString("N2")</p>
             <p><strong>Available Tickets:</strong> @(ViewBag.AvailableTickets ?? 0)</p>
         </div>
 
@@ -52,8 +52,8 @@
                                value="1" required />
                     </div>
 
-                    <p><strong>Ticket Price:</strong> LKR @Model.TicketPrice.ToString("N2")</p>
-                    <p><strong>Total Amount:</strong> LKR <span id="totalAmount">@Model.TicketPrice.ToString("N2")</span></p>
+                    <p><strong>Ticket Price:</strong> USD @Model.TicketPrice.ToString("N2")</p>
+                    <p><strong>Total Amount:</strong> USD <span id="totalAmount">@Model.TicketPrice.ToString("N2")</span></p>
 
                     <button type="submit" class="btn btn-success w-100"
                     @((ViewBag.AvailableTickets ?? 0) == 0 ? "disabled" : "")>
@@ -109,8 +109,8 @@
             totalAmountSpan.textContent = (ticketPrice * qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         });
 
-        // AJAX booking + Stripe payment
-        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        // Booking + Stripe Checkout
+        document.getElementById('bookingForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             var eventId = document.getElementById('EventID').value;
             var quantity = document.getElementById('Quantity').value;
@@ -118,7 +118,10 @@
             // Step 1: Create booking
             const bookingResponse = await fetch('/BookEvent/Book', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                },
                 body: JSON.stringify({ eventId: eventId, quantity: quantity })
             });
 
@@ -126,12 +129,14 @@
 
             if (bookingData.success) {
                 // Step 2: Create Stripe session
-                const stripeResponse = await fetch(`/Payment/CreateStripeSession?bookingId=${bookingData.bookingId}`);
+                const stripeResponse = await fetch(`/payment/create-checkout-session?bookingId=${bookingData.bookingId}`, {
+                    method: 'POST'
+                });
                 const sessionData = await stripeResponse.json();
 
-                if (sessionData.sessionId) {
-                    var stripe = Stripe('@Your_Stripe_Public_Key_Here');
-                    stripe.redirectToCheckout({ sessionId: sessionData.sessionId });
+                if (sessionData.id) {
+                    var stripe = Stripe('@ViewBag.StripePublicKey');
+                    stripe.redirectToCheckout({ sessionId: sessionData.id });
                 } else {
                     alert('Failed to initiate payment. Please try again.');
                 }
@@ -141,3 +146,4 @@
         });
     </script>
 }
+
