@@ -71,10 +71,10 @@
                             <li>
                                 Booking Date: @b.BookingDate.ToString("dd MMM yyyy"),
                                 Tickets: @b.TicketCount,
-                                Total Amount: LKR @b.TotalAmount.ToString("N2")
+                                Total Amount: USD @b.TotalAmount.ToString("N2")
                             </li>
                         }
-                        <p><strong>Total Amount for all bookings:</strong> LKR @ViewBag.UserTotalAmount.ToString("N2")</p>
+                        <p><strong>Total Amount for all bookings:</strong> USD @ViewBag.UserTotalAmount.ToString("N2")</p>
                     }
                     else
                     {

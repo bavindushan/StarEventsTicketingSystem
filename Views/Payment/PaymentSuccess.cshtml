@@ -7,7 +7,14 @@
         <h2 class="mb-3">🎉 Payment Successful!</h2>
         <p>Thank you for your purchase. Your booking has been confirmed.</p>
         <p class="text-muted">You will also receive an email confirmation shortly.</p>
-        <a href="/Events" class="btn btn-primary mt-3">Browse More Events</a>
+
+        <a href="/CustomerDashboard/Events" class="btn btn-primary mt-3">Browse More Events</a>
         <a href="/Bookings/MyBookings" class="btn btn-outline-success mt-3">View My Bookings</a>
+
+        <a href="@Url.Action("DownloadTickets", "BookEvent", new { bookingId = ViewBag.BookingId })"
+           class="btn btn-success mt-3">
+            ⬇️ Download Tickets (QR)
+        </a>
+
     </div>
 </div>

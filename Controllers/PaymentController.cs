@@ -82,6 +82,8 @@ namespace StarEventsTicketingSystem.Controllers
 
             if (booking == null) return NotFound();
 
+            ViewBag.BookingId = booking.BookingID;
+
             return View("PaymentSuccess", booking);
         }
 

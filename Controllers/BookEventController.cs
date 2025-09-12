@@ -94,5 +94,35 @@ namespace StarEventsTicketingSystem.Controllers
             byte[] qrBytes = qrCode.GetGraphic(20);
             return $"data:image/png;base64,{Convert.ToBase64String(qrBytes)}";
         }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadTickets(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.Tickets)
+                .Include(b => b.Event)
+                .FirstOrDefaultAsync(b => b.BookingID == bookingId);
+
+            if (booking == null)
+                return NotFound("Booking not found.");
+
+            // For simplicity, generate ONE QR per ticket and bundle into a ZIP
+            using var memoryStream = new MemoryStream();
+            using (var archive = new System.IO.Compression.ZipArchive(memoryStream, System.IO.Compression.ZipArchiveMode.Create, true))
+            {
+                foreach (var ticket in booking.Tickets)
+                {
+                    string qrText = $"TicketID:{ticket.TicketID}|Event:{booking.Event.EventName}|User:{booking.UserID}";
+                    string base64Qr = GenerateQRCode(qrText);
+                    byte[] qrBytes = Convert.FromBase64String(base64Qr.Split(",")[1]);
+
+                    var entry = archive.CreateEntry($"Ticket_{ticket.TicketID}.png");
+                    using var entryStream = entry.Open();
+                    entryStream.Write(qrBytes, 0, qrBytes.Length);
+                }
+            }
+
+            return File(memoryStream.ToArray(), "application/zip", $"Booking_{booking.BookingID}_Tickets.zip");
+        }
     }
 }
