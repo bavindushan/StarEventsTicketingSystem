@@ -89,20 +89,18 @@
 @section Scripts {
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        var bookNowBtn = document.getElementById('btnBookNow');
-        var bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+        const bookNowBtn = document.getElementById('btnBookNow');
+        const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
 
-        bookNowBtn.addEventListener('click', function () {
-            bookingModal.show();
-        });
+        bookNowBtn.addEventListener('click', () => bookingModal.show());
 
-        var ticketPrice = @Model.TicketPrice;
-        var quantityInput = document.getElementById('Quantity');
-        var totalAmountSpan = document.getElementById('totalAmount');
+        const ticketPrice = @Model.TicketPrice;
+        const quantityInput = document.getElementById('Quantity');
+        const totalAmountSpan = document.getElementById('totalAmount');
 
-        quantityInput.addEventListener('input', function () {
-            var qty = parseInt(quantityInput.value) || 1;
-            var maxTickets = @(ViewBag.AvailableTickets ?? 0);
+        quantityInput.addEventListener('input', () => {
+            let qty = parseInt(quantityInput.value) || 1;
+            const maxTickets = @(ViewBag.AvailableTickets ?? 0);
             if (qty > maxTickets) qty = maxTickets;
             if (qty < 1) qty = 1;
             quantityInput.value = qty;
@@ -110,38 +108,44 @@
         });
 
         // Booking + Stripe Checkout
-        document.getElementById('bookingForm').addEventListener('submit', async function (e) {
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            var eventId = document.getElementById('EventID').value;
-            var quantity = document.getElementById('Quantity').value;
 
-            // Step 1: Create booking
-            const bookingResponse = await fetch('/BookEvent/Book', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                },
-                body: JSON.stringify({ eventId: eventId, quantity: quantity })
-            });
+            const eventId = parseInt(document.getElementById('EventID').value);
+            const quantity = parseInt(document.getElementById('Quantity').value);
 
-            const bookingData = await bookingResponse.json();
-
-            if (bookingData.success) {
-                // Step 2: Create Stripe session
-                const stripeResponse = await fetch(`/payment/create-checkout-session?bookingId=${bookingData.bookingId}`, {
-                    method: 'POST'
+            try {
+                // Step 1: Create booking
+                const bookingResponse = await fetch('/BookEvent/Book', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ eventId: eventId, quantity: quantity })
                 });
-                const sessionData = await stripeResponse.json();
 
-                if (sessionData.id) {
-                    var stripe = Stripe('@ViewBag.StripePublicKey');
-                    stripe.redirectToCheckout({ sessionId: sessionData.id });
+                const bookingData = await bookingResponse.json();
+
+                if (bookingData.success) {
+                    // Step 2: Create Stripe session
+                    const stripeResponse = await fetch(`/payment/create-checkout-session?bookingId=${bookingData.bookingId}`, {
+                        method: 'POST'
+                    });
+
+                    const sessionData = await stripeResponse.json();
+
+                    if (sessionData.id) {
+                        const stripe = Stripe('@ViewBag.StripePublicKey');
+                        stripe.redirectToCheckout({ sessionId: sessionData.id });
+                    } else {
+                        alert('Failed to initiate payment. Please try again.');
+                    }
                 } else {
-                    alert('Failed to initiate payment. Please try again.');
+                    alert(bookingData.message || 'Booking failed');
                 }
-            } else {
-                alert(bookingData.message || 'Booking failed');
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while booking. Please try again.');
             }
         });
     </script>

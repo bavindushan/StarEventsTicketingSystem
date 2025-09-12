@@ -25,79 +25,64 @@ namespace StarEventsTicketingSystem.Controllers
             _userManager = userManager;
         }
 
-        // POST: /BookEvent/Book
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Book(int eventId, int quantity)
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Book([FromBody] BookingRequest request)
         {
-            if (quantity < 1) return BadRequest("Quantity must be at least 1");
-
-            var ev = await _context.Events.Include(e => e.Venue).FirstOrDefaultAsync(e => e.EventID == eventId);
-            if (ev == null) return NotFound();
-
-            int bookedTickets = await _context.Tickets
-                .Where(t => t.Booking.EventID == eventId && t.Status == TicketStatus.Booked)
-                .CountAsync();
-
-            int availableTickets = ev.Venue != null ? ev.Venue.Capacity - bookedTickets : 0;
-
-            if (quantity > availableTickets)
-                return BadRequest("Not enough tickets available");
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
-
-            // Initialize Booking
-            var booking = new Booking
+            try
             {
-                UserID = user.Id,
-                EventID = ev.EventID,
-                BookingDate = DateTime.Now,
-                TotalAmount = ev.TicketPrice * quantity,
-                Status = "Booked",
-                User = user,
-                Event = ev,
-                Tickets = new List<Ticket>(),
-                Payment = null // temporarily null, will assign next
-            };
+                if (request == null)
+                    return BadRequest(new { success = false, message = "Invalid request" });
 
-            // Now create payment with required Booking set in initializer
-            var payment = new Payment
-            {
-                Amount = ev.TicketPrice * quantity,
-                PaymentDate = DateTime.Now,
-                PaymentMethod = "Online",
-                PaymentStatus = "Pending",
-                Booking = booking  // REQUIRED property set
-            };
+                int eventId = request.EventId;
+                int quantity = request.Quantity;
 
-            // Assign payment back to booking
-            booking.Payment = payment;
+                if (quantity < 1)
+                    return BadRequest(new { success = false, message = "Quantity must be at least 1" });
 
-            booking.Payment.Booking = booking; // link back required navigation
+                var ev = await _context.Events.Include(e => e.Venue)
+                                .FirstOrDefaultAsync(e => e.EventID == eventId);
+                if (ev == null)
+                    return NotFound(new { success = false, message = "Event not found" });
 
-            // Generate tickets
-            for (int i = 0; i < quantity; i++)
-            {
-                var qrText = $"{user.Id}_{ev.EventID}_{Guid.NewGuid()}";
-                var qrCodeBase64 = GenerateQRCode(qrText);
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                    return Unauthorized(new { success = false, message = "User not authenticated" });
 
-                var ticket = new Ticket
+                // Step 1: Create booking (status: PendingPayment)
+                var booking = new Booking
                 {
-                    Booking = booking,
-                    BookingID = booking.BookingID, // EF will assign after save
-                    QRCode = qrCodeBase64,
-                    SeatNumber = $"T-{i + 1}", // simple sequential seat numbers
-                    Status = TicketStatus.Booked
+                    UserID = user.Id,
+                    EventID = ev.EventID,
+                    BookingDate = DateTime.Now,
+                    TotalAmount = ev.TicketPrice * quantity,
+                    Status = "PendingPayment",  // <-- important change
+                    User = user,
+                    Event = ev,
+                    Tickets = new List<Ticket>(),
+                    Payment = null!
                 };
 
-                booking.Tickets.Add(ticket);
+                // Step 2: Create payment
+                var payment = new Payment
+                {
+                    Amount = ev.TicketPrice * quantity,
+                    PaymentDate = DateTime.Now,
+                    PaymentMethod = "Online",
+                    PaymentStatus = "Pending",
+                    Booking = booking
+                };
+                booking.Payment = payment;
+
+                _context.Bookings.Add(booking);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Booking created! Proceed to payment.", bookingId = booking.BookingID });
             }
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true, message = "Booking successful!", bookingId = booking.BookingID });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Internal server error: " + ex.Message });
+            }
         }
 
         // Helper: generate QR code as Base64

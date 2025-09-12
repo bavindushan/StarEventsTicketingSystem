@@ -17,8 +17,8 @@ namespace StarEventsTicketingSystem.Models
         [MaxLength(20)]
         public required string SeatNumber { get; set; }  // Optional, if specific seats
 
-        [MaxLength(500)]
-        public required string QRCode { get; set; }  // QR code string (Base64 or string)
+        [Column(TypeName = "nvarchar(max)")]
+        public required string QRCode { get; set; }        // QR code string (Base64 or string)
 
         [Required]
         public TicketStatus Status { get; set; }  // Enum: Booked, Cancelled

@@ -3,19 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using StarEventsTicketingSystem.Data;
 using StarEventsTicketingSystem.Models;
 using StarEventsTicketingSystem.Utilities;
-
-var builder1 = WebApplication.CreateBuilder(args);
-
-// Bind Stripe section to configuration
-builder1.Services.Configure<StripeSettings>(builder1.Configuration.GetSection("Stripe"));
-
-var stripeSettings = builder1.Configuration.GetSection("Stripe");
-builder1.Services.Configure<StripeSettings>(stripeSettings);
-
-Stripe.StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
-
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5166); // HTTP
+    options.ListenLocalhost(7166, listenOptions =>
+    {
+        listenOptions.UseHttps();   // HTTPS
+    });
+});
+
+// Bind Stripe section to configuration
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+var stripeSettings = builder.Configuration.GetSection("Stripe");
+StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
@@ -43,7 +47,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-// Optional: Add dependency injection for utilities and custom services
+// Optional: Dependency injection for utilities / custom services
 // builder.Services.AddScoped<IEmailValidator, EmailValidator>();
 // builder.Services.AddScoped<IPhoneValidator, PhoneValidator>();
 
@@ -60,7 +64,7 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts(); // Default 30 days
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -68,7 +72,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Add Authentication & Authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
