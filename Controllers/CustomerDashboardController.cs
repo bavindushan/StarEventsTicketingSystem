@@ -10,6 +10,7 @@ using PagedList.Core;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using StarEventsTicketingSystem.ViewModels;
 
 namespace StarEventsTicketingSystem.Controllers
 {
@@ -99,16 +100,84 @@ namespace StarEventsTicketingSystem.Controllers
         }
 
         // GET: /CustomerDashboard/BookingHistory
-        public IActionResult BookingHistory()
+        public async Task<IActionResult> BookingHistory(DateTime? fromDate, DateTime? toDate, string? eventName)
         {
-            return View("~/Views/Customer/Dashboard/BookingHistory.cshtml");
+            var user = await _userManager.GetUserAsync(User);
+
+            var bookingsQuery = _context.Bookings
+                .Include(b => b.Event)
+                .Where(b => b.UserID == user.Id)
+                .AsQueryable();
+
+            // Filter by date
+            if (fromDate.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.BookingDate.Date >= fromDate.Value.Date);
+            if (toDate.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.BookingDate.Date <= toDate.Value.Date);
+
+            // Filter by event name
+            if (!string.IsNullOrEmpty(eventName))
+                bookingsQuery = bookingsQuery.Where(b => b.Event.EventName == eventName);
+
+            var bookings = await bookingsQuery.OrderByDescending(b => b.BookingDate).ToListAsync();
+
+            // Load all events for dropdown
+            var allEvents = await _context.Events
+                .OrderBy(e => e.EventName)
+                .Select(e => e.EventName)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.EventNames = allEvents;
+
+            var model = new BookingHistoryViewModel
+            {
+                Bookings = bookings,
+                FromDate = fromDate,
+                ToDate = toDate,
+                EventName = eventName
+            };
+
+            return View("~/Views/Customer/Dashboard/BookingHistory.cshtml", model);
         }
 
         // GET: /CustomerDashboard/Profile
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
-            return View("~/Views/Customer/Dashboard/Profile.cshtml", user);
+            return View("~/Views/Customer/Dashboard/Profile.cshtml", new ChangePasswordViewModel());
+        }
+
+        // POST: /CustomerDashboard/ChangePassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/Customer/Dashboard/Profile.cshtml", model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Password changed successfully.";
+                return RedirectToAction("Profile");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
+            return View("~/Views/Customer/Dashboard/Profile.cshtml", model);
         }
 
         // GET: /CustomerDashboard/EventDetails/{id}

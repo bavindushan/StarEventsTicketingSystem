@@ -1,6 +1,70 @@
-﻿namespace StarEventsTicketingSystem.Views.Customer.Dashboard
-{
-    public class BookingHistory
-    {
-    }
+﻿@model StarEventsTicketingSystem.ViewModels.BookingHistoryViewModel
+
+@{
+    ViewData["Title"] = "My Booking History";
 }
+
+<div class="container py-4">
+    <h2>Booking History</h2>
+
+    <!-- Filter Form -->
+    <form method="get" asp-action="BookingHistory">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label>From Date</label>
+                <input type="date" name="fromDate" class="form-control" value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <label>To Date</label>
+                <input type="date" name="toDate" class="form-control" value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-4">
+                <label>Event</label>
+                @Html.DropDownList(
+                         "eventName",
+                         new SelectList(ViewBag.EventNames as List<string>, Model.EventName),
+                         "All Events",
+                         new { @class = "form-select" }
+                         )
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Bookings.Any())
+            {
+                foreach (var booking in Model.Bookings)
+                {
+                    <tr>
+                        <td>@booking.Event.EventName</td>
+                        <td>@booking.BookingDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@booking.TotalAmount.ToString("C")</td>
+                        <td>@booking.Status</td>
+                        <td>
+                            <a asp-controller="BookEvent" asp-action="DownloadTickets" asp-route-bookingId="@booking.BookingID" class="btn btn-success btn-sm">Download Tickets</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center">No bookings found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
