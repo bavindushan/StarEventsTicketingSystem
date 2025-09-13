@@ -1,11 +1,63 @@
-﻿@{
+﻿@model IEnumerable<StarEventsTicketingSystem.Models.Event>
+
+@{
     ViewData["Title"] = "Organizer Dashboard";
 }
 
-<h2>Welcome, @ViewBag.FullName</h2>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light border-end vh-100 p-3">
+            <h4 class="mb-4">Welcome, @ViewBag.FullName</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2">
+                    <a class="nav-link" asp-controller="Events" asp-action="Index">📅 Manage Events</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link" asp-controller="OrganizerDashboard" asp-action="Bookings">📊 Sales & Revenue</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link" asp-controller="OrganizerDashboard" asp-action="Profile">👤 Profile</a>
+                </li>
+            </ul>
+        </div>
 
-<ul>
-    <li><a asp-action="Events">Manage Events</a></li>
-    <li><a asp-action="Bookings">View Bookings</a></li>
-    <li><a asp-action="Profile">Profile</a></li>
-</ul>
+        <!-- Main content -->
+        <div class="col-md-9 col-lg-10 p-4">
+            <h2 class="mb-4">My Events</h2>
+
+            @if (Model.Any())
+            {
+                <table class="table table-striped table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Ticket Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ev in Model)
+                        {
+                            <tr>
+                                <td>@ev.EventName</td>
+                                <td>@ev.Category</td>
+                                <td>@ev.Date.ToString("yyyy-MM-dd")</td>
+                                <td>@ev.Location</td>
+                                <td>@ev.TicketPrice.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    No events found. <a asp-controller="Events" asp-action="Create">Create your first event</a>.
+                </div>
+            }
+        </div>
+    </div>
+</div>
