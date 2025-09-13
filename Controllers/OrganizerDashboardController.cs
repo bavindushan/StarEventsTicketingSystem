@@ -193,12 +193,74 @@ namespace StarEventsTicketingSystem.Controllers
             return Ok(result);
         }
 
-        // Profile
+        // GET: Organizer Profile
+        [HttpGet]
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
-            return View("~/Views/Organizer/Dashboard/Profile.cshtml", user);
+
+            var model = new OrganizerProfileViewModel
+            {
+                FullName = user.FullName,
+                Address = user.Address
+            };
+
+            return View("~/Views/Organizer/Dashboard/Profile.cshtml",model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfile(OrganizerProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Please correct the errors and try again.";
+                return View("~/Views/Organizer/Dashboard/Profile.cshtml", model);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            user.FullName = model.FullName?.Trim();
+            user.Address = model.Address?.Trim();
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Profile updated successfully!";
+            }
+            else
+            {
+                TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction("Profile");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(OrganizerProfileViewModel model)
+        {
+            if (string.IsNullOrEmpty(model.OldPassword) || string.IsNullOrEmpty(model.NewPassword))
+            {
+                TempData["Error"] = "Please provide all password fields.";
+                return RedirectToAction("Profile");
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Password updated successfully!";
+            }
+            else
+            {
+                TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction("Profile");
         }
     }
 
