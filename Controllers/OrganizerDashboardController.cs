@@ -123,6 +123,76 @@ namespace StarEventsTicketingSystem.Controllers
             return View("~/Views/Organizer/Dashboard/Bookings.cshtml");
         }
 
+        // GET: /OrganizerDashboard/Sales
+        public async Task<IActionResult> Sales()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var events = await _context.Events
+                .Where(e => e.OrganizerID == user.Id)
+                .OrderByDescending(e => e.Date)
+                .ToListAsync();
+
+            // Pass organizer events as the model for the dropdown
+            return View("~/Views/Organizer/Dashboard/Sales.cshtml", events);
+        }
+
+        // GET: /OrganizerDashboard/GetSalesData?eventId=1&fromDate=2025-09-01&toDate=2025-09-10
+        [HttpGet]
+        public async Task<IActionResult> GetSalesData(int eventId, DateTime? fromDate, DateTime? toDate)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            // ensure the event belongs to the organizer
+            var ev = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.EventID == eventId && e.OrganizerID == user.Id);
+            if (ev == null) return Forbid();
+
+            // Bookings considered "revenue" only when payment status is "Paid"
+            var bookingsQuery = _context.Bookings
+                .Include(b => b.Payment)
+                .Where(b => b.EventID == eventId && b.Payment.PaymentStatus == "Paid");
+
+            if (fromDate.HasValue) bookingsQuery = bookingsQuery.Where(b => b.BookingDate >= fromDate.Value.Date);
+            if (toDate.HasValue) bookingsQuery = bookingsQuery.Where(b => b.BookingDate < toDate.Value.Date.AddDays(1));
+
+            var revenueByDate = await bookingsQuery
+                .GroupBy(b => b.BookingDate.Date)
+                .Select(g => new { Date = g.Key, Revenue = g.Sum(b => b.TotalAmount) })
+                .ToListAsync();
+
+            // Tickets sold per date (only count tickets whose booking's payment is Paid)
+            var ticketsQuery = _context.Tickets
+                .Where(t => t.Booking.EventID == eventId && t.Status == TicketStatus.Booked && t.Booking.Payment.PaymentStatus == "Paid");
+
+            if (fromDate.HasValue) ticketsQuery = ticketsQuery.Where(t => t.Booking.BookingDate >= fromDate.Value.Date);
+            if (toDate.HasValue) ticketsQuery = ticketsQuery.Where(t => t.Booking.BookingDate < toDate.Value.Date.AddDays(1));
+
+            var ticketsByDate = await ticketsQuery
+                .GroupBy(t => t.Booking.BookingDate.Date)
+                .Select(g => new { Date = g.Key, Tickets = g.Count() })
+                .ToListAsync();
+
+            // Merge the date sets
+            var dates = revenueByDate.Select(r => r.Date)
+                        .Union(ticketsByDate.Select(t => t.Date))
+                        .Distinct()
+                        .OrderBy(d => d)
+                        .ToList();
+
+            var result = dates.Select(d => new
+            {
+                date = d.ToString("yyyy-MM-dd"),
+                revenue = revenueByDate.FirstOrDefault(r => r.Date == d)?.Revenue ?? 0m,
+                ticketsSold = ticketsByDate.FirstOrDefault(t => t.Date == d)?.Tickets ?? 0
+            }).ToList();
+
+            return Ok(result);
+        }
+
         // Profile
         public async Task<IActionResult> Profile()
         {
