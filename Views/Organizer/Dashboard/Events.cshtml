@@ -1,0 +1,205 @@
+﻿@model IEnumerable<StarEventsTicketingSystem.Models.Event>
+@using StarEventsTicketingSystem.Enums
+@{
+    ViewData["Title"] = "Manage Events";
+    var categories = ViewBag.Categories as List<EventCategory>;
+    var eventNames = ViewBag.EventNames as List<string>;
+    var locations = ViewBag.Locations as List<string>;
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mt-4">
+    <h2>Manage My Events</h2>
+
+    <!-- Filters -->
+    <form method="get" class="row mb-4">
+        <div class="col-md-3">
+            <select name="searchName" class="form-control">
+                <option value="">-- Select Event --</option>
+                @foreach (var name in eventNames)
+                {
+                    <option value="@name">@name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="location" class="form-control">
+                <option value="">-- Select Location --</option>
+                @foreach (var loc in locations)
+                {
+                    <option value="@loc">@loc</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="category" class="form-control">
+                <option value="">-- Select Category --</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="date" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- Event Cards -->
+    <div class="row">
+        @foreach (var ev in Model)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5>@ev.EventName</h5>
+                        <p><b>Date:</b> @ev.Date.ToShortDateString()</p>
+                        <p><b>Location:</b> @ev.Location</p>
+                        <p><b>Category:</b> @ev.Category</p>
+                        <p><b>Ticket Price:</b> $@ev.TicketPrice</p>
+                        <p><b>Discounts:</b> @(ev.Discounts.Any() ? string.Join(", ", ev.Discounts.Select(d => d.DiscountPercentage + "%")) : "0%")</p>
+                        <button class="btn btn-sm btn-warning"
+                                onclick='openEditModal(
+                                    @ev.EventID,
+                                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ev.EventName)),
+                                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ev.Location)),
+                                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ev.Category.ToString())),
+                                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ev.Date.ToString("yyyy-MM-dd"))),
+                                    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ev.Description)),
+                                    @ev.TicketPrice
+                                )'>
+                            Edit
+                        </button>
+
+                        <button class="btn btn-sm btn-danger" onclick="deleteEvent(@ev.EventID)">Delete</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editEventForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editEventId" name="EventID" />
+
+                    <div class="mb-3">
+                        <label>Name</label>
+                        <input type="text" id="editName" name="EventName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Category</label>
+                        <select id="editCategory" name="Category" class="form-control">
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@( (int)cat )">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Location</label>
+                        <select id="editLocation" name="Location" class="form-control">
+                            @foreach (var loc in locations)
+                            {
+                                <option value="@loc">@loc</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Date</label>
+                        <input type="date" id="editDate" name="Date" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Ticket Price</label>
+                        <input type="number" id="editTicketPrice" name="TicketPrice" step="0.01" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea id="editDescription" name="Description" class="form-control" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal(id, name, location, category, date, description, price) {
+        document.getElementById("editEventId").value = id;
+        document.getElementById("editName").value = name;
+        document.getElementById("editLocation").value = location;
+        document.getElementById("editCategory").value = category;
+        document.getElementById("editDate").value = date;
+        document.getElementById("editDescription").value = description;
+        document.getElementById("editTicketPrice").value = price;
+        new bootstrap.Modal(document.getElementById('editEventModal')).show();
+    }
+
+    // Delete Event
+    function deleteEvent(id) {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/OrganizerDashboard/DeleteEvent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ EventID: id })
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        Swal.fire("Deleted!", "Event has been deleted.", "success").then(() => location.reload());
+                    } else {
+                        Swal.fire("Error!", data.message, "error");
+                    }
+                });
+            }
+        });
+    }
+
+    // Edit Event Submit
+    document.getElementById("editEventForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const obj = Object.fromEntries(formData.entries());
+        // Ensure types are correct
+        obj.EventID = parseInt(obj.EventID);
+        obj.TicketPrice = parseFloat(obj.TicketPrice);
+
+        fetch('/OrganizerDashboard/EditEvent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(obj)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire("Updated!", "Event has been updated successfully.", "success")
+                    .then(() => location.reload());
+            } else {
+                Swal.fire("Error!", data.message, "error");
+            }
+        })
+        .catch(err => {
+            Swal.fire("Error!", "Something went wrong.", "error");
+        });
+    });
+</script>
