@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StarEventsTicketingSystem.Data;
+using StarEventsTicketingSystem.Enums;
 using StarEventsTicketingSystem.Models;
 using StarEventsTicketingSystem.ViewModels;
 using System;
@@ -57,15 +58,72 @@ namespace StarEventsTicketingSystem.Controllers
                 .OrderByDescending(l => l.Timestamp)
                 .ToList();
 
-            // return JSON (for AJAX) 
-            return Json(logs);
+            return Json(logs); // return JSON (for AJAX)
         }
 
         // ✅ Manage Events
         public IActionResult ManageEvents()
         {
             var events = _context.Events.ToList();
-            return View(events);
+
+            // Populate ViewBags for modal and filters
+            ViewBag.EventNames = events.Select(e => e.EventName).Distinct().ToList();
+            ViewBag.Categories = Enum.GetValues(typeof(EventCategory)).Cast<EventCategory>().ToList();
+            ViewBag.Locations = events.Select(e => e.Location).Distinct().ToList();
+
+            // Load only users with "Organizer" role
+            var organizerRole = _roleManager.Roles.FirstOrDefault(r => r.Name == "Organizer");
+            if (organizerRole != null)
+            {
+                var organizerIds = _context.UserRoles
+                    .Where(ur => ur.RoleId == organizerRole.Id)
+                    .Select(ur => ur.UserId)
+                    .ToList();
+
+                ViewBag.Organizers = _userManager.Users
+                    .Where(u => organizerIds.Contains(u.Id))
+                    .ToList();
+            }
+            else
+            {
+                ViewBag.Organizers = new List<ApplicationUser>();
+            }
+
+            ViewBag.Venues = _context.Venues.ToList();
+
+            // ✅ Wrap events in the ViewModel
+            var model = new ManageEventsViewModel
+            {
+                Events = events,
+                NewEvent = new Event() // for the create modal
+            };
+
+            return View(model);
+        }
+
+        // ✅ Create Event (POST via AJAX JSON)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateEvent([Bind(Prefix = "NewEvent")] Event newEvent)
+        {
+            if (newEvent == null)
+            {
+                return BadRequest(new { success = false, message = "Invalid event data." });
+            }
+
+            if (!TryValidateModel(newEvent))
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+
+                return BadRequest(new { success = false, message = "Validation failed.", errors });
+            }
+
+            _context.Events.Add(newEvent);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Event created successfully!" });
         }
 
         // ✅ Manage Users

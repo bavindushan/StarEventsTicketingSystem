@@ -12,11 +12,11 @@ namespace StarEventsTicketingSystem.Models
         public int EventID { get; set; }
 
         // FK to User (Organizer)
-        [Required]
+        [Required(ErrorMessage = "Organizer is required")]
         public string OrganizerID { get; set; }
 
         [Required, MaxLength(150)]
-        public required string EventName { get; set; }
+        public string EventName { get; set; }
 
         [Required]
         public EventCategory Category { get; set; } // Enum: Concert, Theatre, Cultural, etc.
@@ -25,22 +25,23 @@ namespace StarEventsTicketingSystem.Models
         public DateTime Date { get; set; }
 
         [MaxLength(250)]
-        public required string Location { get; set; }
+        public string Location { get; set; }
 
         // FK to Venue
-        public int? VenueID { get; set; }
+        [Required(ErrorMessage = "Venue is required")]
+        public int VenueID { get; set; } // make it non-nullable
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TicketPrice { get; set; }
 
-        public required string Description { get; set; }
+        public string Description { get; set; }
 
         // Navigation properties
         [ForeignKey(nameof(OrganizerID))]
-        public required virtual ApplicationUser Organizer { get; set; }
+        public virtual ApplicationUser Organizer { get; set; }
 
         [ForeignKey(nameof(VenueID))]
-        public required virtual Venue Venue { get; set; }
+        public virtual Venue Venue { get; set; }
 
         // Bookings for this event (one booking can contain multiple tickets)
         public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();

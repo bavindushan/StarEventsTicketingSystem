@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StarEventsTicketingSystem.Data;
 
@@ -11,9 +12,11 @@ using StarEventsTicketingSystem.Data;
 namespace StarEventsTicketingSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250914130957_Updateeventwithremovingrequiredkeyword")]
+    partial class Updateeventwithremovingrequiredkeyword
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -396,7 +399,7 @@ namespace StarEventsTicketingSystem.Migrations
                     b.Property<decimal>("TicketPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("VenueID")
+                    b.Property<int?>("VenueID")
                         .HasColumnType("int");
 
                     b.HasKey("EventID");
@@ -687,8 +690,7 @@ namespace StarEventsTicketingSystem.Migrations
                     b.HasOne("StarEventsTicketingSystem.Models.Venue", "Venue")
                         .WithMany("Events")
                         .HasForeignKey("VenueID")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Organizer");
 
