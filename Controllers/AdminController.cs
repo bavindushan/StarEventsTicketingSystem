@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using StarEventsTicketingSystem.Data;
 using StarEventsTicketingSystem.Models;
 using StarEventsTicketingSystem.ViewModels;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,7 +15,7 @@ namespace StarEventsTicketingSystem.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ApplicationDbContext _context; // Your EF Core DbContext
+        private readonly ApplicationDbContext _context; // EF Core DbContext
 
         public AdminController(
             UserManager<ApplicationUser> userManager,
@@ -29,7 +30,6 @@ namespace StarEventsTicketingSystem.Controllers
         // ✅ Dashboard landing page
         public IActionResult Dashboard()
         {
-            // Example stats
             var totalUsers = _userManager.Users.Count();
             var totalEvents = _context.Events.Count();
             var totalTickets = _context.Tickets.Count();
@@ -40,10 +40,28 @@ namespace StarEventsTicketingSystem.Controllers
             ViewBag.TotalTickets = totalTickets;
             ViewBag.TotalBookings = totalBookings;
 
-            return View();
+            var logs = _context.AuditLogs
+                .OrderByDescending(l => l.Timestamp)
+                .Take(50) // show latest 50
+                .ToList();
+
+            return View(logs);
         }
 
-        // ✅ Manage Events (List of events)
+        // ✅ Filter logs by date (AJAX call from view)
+        [HttpGet]
+        public IActionResult FilterAuditLogs(DateTime date)
+        {
+            var logs = _context.AuditLogs
+                .Where(l => l.Timestamp.Date == date.Date)
+                .OrderByDescending(l => l.Timestamp)
+                .ToList();
+
+            // return JSON (for AJAX) 
+            return Json(logs);
+        }
+
+        // ✅ Manage Events
         public IActionResult ManageEvents()
         {
             var events = _context.Events.ToList();
@@ -57,14 +75,13 @@ namespace StarEventsTicketingSystem.Controllers
             return View(users);
         }
 
-        // ✅ Reports (system summary)
+        // ✅ Reports (placeholder)
         public IActionResult Reports()
         {
-            // Later we can return reports model
             return View();
         }
 
-        // ✅ Admin Settings (change password, etc.)
+        // ✅ Admin Settings (change password)
         [HttpGet]
         public IActionResult Settings()
         {
