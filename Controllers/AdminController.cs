@@ -395,7 +395,162 @@ namespace StarEventsTicketingSystem.Controllers
         public IActionResult ManageUsers()
         {
             var users = _userManager.Users.ToList();
+            ViewBag.Roles = _roleManager.Roles.ToList();
             return View(users);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAdmin(AdminCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Return ManageUsers view with model + roles
+                ViewBag.Roles = _roleManager.Roles.ToList();
+                TempData["ErrorMessage"] = "Validation failed. Please correct the errors and try again.";
+                return View("ManageUsers", _userManager.Users.ToList());
+            }
+
+            var user = new ApplicationUser
+            {
+                FullName = model.FullName,
+                Email = model.Email,
+                UserName = model.Email,
+                PhoneNumber = model.PhoneNumber,
+                Address = model.Address ?? string.Empty,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(", ", result.Errors.Select(e => e.Description));
+                ViewBag.Roles = _roleManager.Roles.ToList();
+                return View("ManageUsers", _userManager.Users.ToList());
+            }
+
+            // Assign Admin role
+            var roleResult = await _userManager.AddToRoleAsync(user, "Admin");
+            if (!roleResult.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                TempData["ErrorMessage"] = "User created but role assignment failed.";
+                ViewBag.Roles = _roleManager.Roles.ToList();
+                return View("ManageUsers", _userManager.Users.ToList());
+            }
+
+            TempData["SuccessMessage"] = "Admin account created successfully.";
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+
+        // GET: Filter users by role (AJAX)
+        [HttpGet]
+        public async Task<IActionResult> FilterUsers(string role)
+        {
+            var usersList = _userManager.Users.ToList();
+            var result = new List<object>();
+
+            foreach (var user in usersList)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (string.IsNullOrEmpty(role) || roles.Contains(role))
+                {
+                    result.Add(new
+                    {
+                        id = user.Id,
+                        fullName = user.FullName,
+                        email = user.Email,
+                        phoneNumber = user.PhoneNumber,
+                        role = string.Join(", ", roles),
+                        address = user.Address,
+                        createdAt = user.CreatedAt,
+                        updatedAt = user.UpdatedAt
+                    });
+                }
+            }
+
+            return Json(result);
+        }
+
+        // GET: Fetch user by ID (AJAX)
+        [HttpGet]
+        public async Task<IActionResult> GetUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                return NotFound(new { success = false, message = "User not found." });
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Json(new
+            {
+                id = user.Id,
+                fullName = user.FullName,
+                email = user.Email,
+                phoneNumber = user.PhoneNumber,
+                role = string.Join(", ", roles),
+                address = user.Address,
+                createdAt = user.CreatedAt,
+                updatedAt = user.UpdatedAt
+            });
+        }
+
+        // POST: Edit user (AJAX)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(EditUserViewModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null)
+                return Json(new { success = false, message = "User not found." });
+
+            user.FullName = model.FullName;
+            user.Email = model.Email;
+            user.UserName = model.Email;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Address = model.Address;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+                return Json(new { success = false, message = string.Join(", ", updateResult.Errors.Select(e => e.Description)) });
+
+            // ✅ Handle password change (if provided)
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var passResult = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+                if (!passResult.Succeeded)
+                    return Json(new { success = false, message = string.Join(", ", passResult.Errors.Select(e => e.Description)) });
+            }
+
+            // ✅ Handle role change
+            if (!string.IsNullOrWhiteSpace(model.Role))
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                await _userManager.AddToRoleAsync(user, model.Role);
+            }
+
+            return Json(new { success = true, message = "User updated successfully." });
+        }
+
+        // POST: Delete user (AJAX)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                return Json(new { success = false, message = "User not found." });
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+                return Json(new { success = false, message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+
+            return Json(new { success = true, message = "User deleted successfully." });
         }
 
         // ✅ Reports (placeholder)
