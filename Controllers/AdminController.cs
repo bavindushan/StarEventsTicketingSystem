@@ -8,6 +8,7 @@ using StarEventsTicketingSystem.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace StarEventsTicketingSystem.Controllers
 {
@@ -43,7 +44,7 @@ namespace StarEventsTicketingSystem.Controllers
 
             var logs = _context.AuditLogs
                 .OrderByDescending(l => l.Timestamp)
-                .Take(50) // show latest 50
+                .Take(50)
                 .ToList();
 
             return View(logs);
@@ -61,15 +62,31 @@ namespace StarEventsTicketingSystem.Controllers
             return Json(logs); // return JSON (for AJAX)
         }
 
-        // ✅ Manage Events
-        public IActionResult ManageEvents()
+        // ✅ Manage Events with filtering
+        public IActionResult ManageEvents(string searchName, string location, EventCategory? category, DateTime? date)
         {
-            var events = _context.Events.ToList();
+            // Start query
+            var eventsQuery = _context.Events.AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchName))
+                eventsQuery = eventsQuery.Where(e => e.EventName == searchName);
+
+            if (!string.IsNullOrEmpty(location))
+                eventsQuery = eventsQuery.Where(e => e.Location == location);
+
+            if (category.HasValue)
+                eventsQuery = eventsQuery.Where(e => e.Category == category.Value);
+
+            if (date.HasValue)
+                eventsQuery = eventsQuery.Where(e => e.Date.Date == date.Value.Date);
+
+            var events = eventsQuery.ToList();
 
             // Populate ViewBags for modal and filters
-            ViewBag.EventNames = events.Select(e => e.EventName).Distinct().ToList();
+            ViewBag.EventNames = _context.Events.Select(e => e.EventName).Distinct().ToList();
             ViewBag.Categories = Enum.GetValues(typeof(EventCategory)).Cast<EventCategory>().ToList();
-            ViewBag.Locations = events.Select(e => e.Location).Distinct().ToList();
+            ViewBag.Locations = _context.Events.Select(e => e.Location).Distinct().ToList();
 
             // Load only users with "Organizer" role
             var organizerRole = _roleManager.Roles.FirstOrDefault(r => r.Name == "Organizer");
@@ -91,11 +108,11 @@ namespace StarEventsTicketingSystem.Controllers
 
             ViewBag.Venues = _context.Venues.ToList();
 
-            // ✅ Wrap events + empty CreateEventViewModel for modal form
+            // Wrap events + empty CreateEventViewModel for modal form
             var model = new ManageEventsViewModel
             {
                 Events = events,
-                NewEvent = new CreateEventViewModel() // FIXED ✅
+                NewEvent = new CreateEventViewModel()
             };
 
             return View(model);
@@ -108,7 +125,12 @@ namespace StarEventsTicketingSystem.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { success = false, message = "Validation failed.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Validation failed.",
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             var newEvent = new Event
@@ -169,6 +191,90 @@ namespace StarEventsTicketingSystem.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Discount added!" });
+        }
+
+        // GET: Fetch event data for edit (AJAX)
+        public IActionResult GetEvent(int id)
+        {
+            var ev = _context.Events.FirstOrDefault(e => e.EventID == id);
+            if (ev == null)
+                return NotFound(new { success = false, message = "Event not found." });
+
+            var discount = _context.Discounts.FirstOrDefault(d => d.EventID == ev.EventID);
+
+            var data = new StarEventsTicketingSystem.ViewModels.EditEventViewModelVM
+            {
+                EventID = ev.EventID,
+                OrganizerID = ev.OrganizerID,
+                VenueID = ev.VenueID,
+                EventName = ev.EventName,
+                Category = ev.Category,
+                Date = ev.Date,
+                Location = ev.Location,
+                TicketPrice = ev.TicketPrice,
+                Description = ev.Description,
+                DiscountCode = discount?.Code,
+                DiscountPercentage = discount?.DiscountPercentage,
+                DiscountStartDate = discount?.StartDate,
+                DiscountEndDate = discount?.EndDate
+            };
+
+            return Json(data);
+        }
+
+        // POST: Edit Event
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditEvent(StarEventsTicketingSystem.ViewModels.EditEventViewModelVM model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, message = "Validation failed.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+
+            var ev = await _context.Events.FindAsync(model.EventID);
+            if (ev == null)
+                return NotFound(new { success = false, message = "Event not found." });
+
+            // Update event
+            ev.EventName = model.EventName;
+            ev.OrganizerID = model.OrganizerID;
+            ev.VenueID = model.VenueID;
+            ev.Category = model.Category;
+            ev.Date = model.Date;
+            ev.Location = model.Location;
+            ev.TicketPrice = model.TicketPrice;
+            ev.Description = model.Description;
+
+            // Update or create discount
+            var discount = _context.Discounts.FirstOrDefault(d => d.EventID == ev.EventID);
+            if (!string.IsNullOrEmpty(model.DiscountCode) && model.DiscountPercentage.HasValue)
+            {
+                if (discount == null)
+                {
+                    discount = new Discount
+                    {
+                        EventID = ev.EventID,
+                        Code = model.DiscountCode,
+                        DiscountPercentage = model.DiscountPercentage.Value,
+                        StartDate = model.DiscountStartDate ?? DateTime.Now,
+                        EndDate = model.DiscountEndDate ?? DateTime.Now.AddMonths(1)
+                    };
+                    _context.Discounts.Add(discount);
+                }
+                else
+                {
+                    discount.Code = model.DiscountCode;
+                    discount.DiscountPercentage = model.DiscountPercentage.Value;
+                    discount.StartDate = model.DiscountStartDate ?? DateTime.Now;
+                    discount.EndDate = model.DiscountEndDate ?? DateTime.Now.AddMonths(1);
+                }
+            }
+            else if (discount != null)
+            {
+                _context.Discounts.Remove(discount);
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
         }
 
         // ✅ Manage Users

@@ -70,7 +70,7 @@
                         <p><b>Venue:</b> @(ev.Venue != null ? ev.Venue.VenueName : "N/A")</p>
                         <p><b>Ticket Price:</b> $@ev.TicketPrice</p>
 
-                        <button class="btn btn-sm btn-warning">Edit</button>
+                        <button class="btn btn-sm btn-warning" data-eventid="@ev.EventID">Edit</button>
                         <button class="btn btn-sm btn-danger" onclick="deleteEvent(@ev.EventID)">Delete</button>
                     </div>
                 </div>
@@ -92,6 +92,7 @@
                 <div class="modal-body">
                     <div id="validationSummary" class="text-danger"></div>
 
+                    <!-- Organizer -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.OrganizerID" class="form-label"></label>
                         <select asp-for="NewEvent.OrganizerID" class="form-control" required>
@@ -104,6 +105,7 @@
                         <span asp-validation-for="NewEvent.OrganizerID" class="text-danger"></span>
                     </div>
 
+                    <!-- Venue -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.VenueID" class="form-label"></label>
                         <select asp-for="NewEvent.VenueID" class="form-control" required>
@@ -116,12 +118,14 @@
                         <span asp-validation-for="NewEvent.VenueID" class="text-danger"></span>
                     </div>
 
+                    <!-- Event Name -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.EventName" class="form-label"></label>
                         <input asp-for="NewEvent.EventName" class="form-control" required />
                         <span asp-validation-for="NewEvent.EventName" class="text-danger"></span>
                     </div>
 
+                    <!-- Category -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.Category" class="form-label"></label>
                         <select asp-for="NewEvent.Category" class="form-control" required>
@@ -134,47 +138,50 @@
                         <span asp-validation-for="NewEvent.Category" class="text-danger"></span>
                     </div>
 
+                    <!-- Date -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.Date" class="form-label"></label>
                         <input asp-for="NewEvent.Date" type="date" class="form-control" required />
                         <span asp-validation-for="NewEvent.Date" class="text-danger"></span>
                     </div>
 
+                    <!-- Location -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.Location" class="form-label"></label>
                         <input asp-for="NewEvent.Location" class="form-control" required />
                         <span asp-validation-for="NewEvent.Location" class="text-danger"></span>
                     </div>
 
+                    <!-- Ticket Price -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.TicketPrice" class="form-label"></label>
                         <input asp-for="NewEvent.TicketPrice" type="number" step="0.01" class="form-control" required />
                         <span asp-validation-for="NewEvent.TicketPrice" class="text-danger"></span>
                     </div>
 
+                    <!-- Description -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.Description" class="form-label"></label>
                         <textarea asp-for="NewEvent.Description" class="form-control" required></textarea>
                         <span asp-validation-for="NewEvent.Description" class="text-danger"></span>
                     </div>
+
+                    <!-- Discount Section -->
                     <div class="mb-3">
                         <label asp-for="NewEvent.DiscountCode" class="form-label">Discount Code (Optional)</label>
                         <input asp-for="NewEvent.DiscountCode" class="form-control" />
                         <span asp-validation-for="NewEvent.DiscountCode" class="text-danger"></span>
                     </div>
-
                     <div class="mb-3">
                         <label asp-for="NewEvent.DiscountPercentage" class="form-label">Discount % (Optional)</label>
                         <input asp-for="NewEvent.DiscountPercentage" type="number" step="0.01" class="form-control" />
                         <span asp-validation-for="NewEvent.DiscountPercentage" class="text-danger"></span>
                     </div>
-
                     <div class="mb-3">
                         <label asp-for="NewEvent.DiscountStartDate" class="form-label">Discount Start Date (Optional)</label>
                         <input asp-for="NewEvent.DiscountStartDate" type="date" class="form-control" />
                         <span asp-validation-for="NewEvent.DiscountStartDate" class="text-danger"></span>
                     </div>
-
                     <div class="mb-3">
                         <label asp-for="NewEvent.DiscountEndDate" class="form-label">Discount End Date (Optional)</label>
                         <input asp-for="NewEvent.DiscountEndDate" type="date" class="form-control" />
@@ -189,67 +196,202 @@
     </div>
 </div>
 
+<!-- Edit Event Modal -->
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editEventForm" asp-action="EditEvent" asp-controller="Admin" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="EditEventID" name="EventID" />
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editValidationSummary" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Organizer</label>
+                        <select id="EditOrganizerID" name="OrganizerID" class="form-control" required>
+                            <option value="">-- Select Organizer --</option>
+                            @foreach (var org in organizers)
+                            {
+                                <option value="@org.Id">@org.FullName (@org.Email)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Venue</label>
+                        <select id="EditVenueID" name="VenueID" class="form-control" required>
+                            <option value="">-- Select Venue --</option>
+                            @foreach (var v in venues)
+                            {
+                                <option value="@v.VenueID">@v.VenueName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Event Name</label>
+                        <input type="text" id="EditEventName" name="EventName" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select id="EditCategory" name="Category" class="form-control" required>
+                            <option value="">-- Select Category --</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="EditDate" name="Date" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input type="text" id="EditLocation" name="Location" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ticket Price</label>
+                        <input type="number" step="0.01" id="EditTicketPrice" name="TicketPrice" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="EditDescription" name="Description" class="form-control" required></textarea>
+                    </div>
+
+                    <div id="editDiscountSection" style="display:none;">
+                        <div class="mb-3">
+                            <label class="form-label">Discount Code (Optional)</label>
+                            <input type="text" id="EditDiscountCode" name="DiscountCode" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Discount % (Optional)</label>
+                            <input type="number" step="0.01" id="EditDiscountPercentage" name="DiscountPercentage" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Discount Start Date (Optional)</label>
+                            <input type="date" id="EditDiscountStartDate" name="DiscountStartDate" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Discount End Date (Optional)</label>
+                            <input type="date" id="EditDiscountEndDate" name="DiscountEndDate" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // AJAX form submission with AntiForgeryToken
-            $('#createEventForm').submit(function (e) {
-            e.preventDefault();
-            var form = $(this);
-            var token = $('input[name="__RequestVerificationToken"]').val();
+        $(document).ready(function () {
 
-            // Log serialized data for debugging
-            console.log("Serialized Form Data:", form.serialize());
+            // Open Edit Modal
+            $('.btn-warning').click(function () {
+                var eventId = $(this).data('eventid'); // ✅ fixed
 
-            $.ajax({
-                url: '@Url.Action("CreateEvent", "Admin")',
-                type: 'POST',
-                data: form.serialize(),
-                headers: { "RequestVerificationToken": token },
-                success: function () {
-                    $('#createEventModal').modal('hide');
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Event Created!',
-                        text: 'The event has been successfully created.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => location.reload());
-                },
-                error: function (xhr) {
-                    console.log("Error Response:", xhr.responseText);
-                    try {
-                        var res = JSON.parse(xhr.responseText);
-                        $('#validationSummary').html(res.errors ? res.errors.join("<br/>") : res.message);
-                    } catch {
-                        $('#validationSummary').html("Failed to create event.");
+                $.get('@Url.Action("GetEvent", "Admin")', { id: eventId }, function (data) {
+                    $('#EditEventID').val(data.eventID);
+                    $('#EditOrganizerID').val(data.organizerID);
+                    $('#EditVenueID').val(data.venueID);
+                    $('#EditEventName').val(data.eventName);
+                    $('#EditCategory').val(data.category);
+                    $('#EditDate').val(data.date.split('T')[0]);
+                    $('#EditLocation').val(data.location);
+                    $('#EditTicketPrice').val(data.ticketPrice);
+                    $('#EditDescription').val(data.description);
+
+                    if (data.discountCode || data.discountPercentage) {
+                        $('#editDiscountSection').show();
+                        $('#EditDiscountCode').val(data.discountCode);
+                        $('#EditDiscountPercentage').val(data.discountPercentage);
+                        $('#EditDiscountStartDate').val(data.discountStartDate?.split('T')[0]);
+                        $('#EditDiscountEndDate').val(data.discountEndDate?.split('T')[0]);
+                    } else {
+                        $('#editDiscountSection').hide();
+                        $('#EditDiscountCode').val('');
+                        $('#EditDiscountPercentage').val('');
+                        $('#EditDiscountStartDate').val('');
+                        $('#EditDiscountEndDate').val('');
                     }
-                    Swal.fire('Error', 'Failed to create event.', 'error');
-                }
+
+                    $('#editEventModal').modal('show');
+                });
             });
 
-            $('#addDiscountModal').on('show.bs.modal', function (e) {
-                var button = $(e.relatedTarget);
-                var eventId = button.data('eventid');
-                $('#DiscountEventId').val(eventId);
-            });
-
-            $('#addDiscountForm').submit(function (e) {
+            // Create Event AJAX
+            $('#createEventForm').submit(function (e) {
                 e.preventDefault();
                 var form = $(this);
+                var token = $('input[name="__RequestVerificationToken"]').val();
 
                 $.ajax({
-                    url: '@Url.Action("AddDiscount", "Admin")',
+                    url: form.attr('action'),
                     type: 'POST',
                     data: form.serialize(),
-                    success: function (res) {
-                        $('#addDiscountModal').modal('hide');
-                        Swal.fire('Success', 'Discount added successfully!', 'success')
-                            .then(() => location.reload());
+                    headers: { "RequestVerificationToken": token },
+                    success: function () {
+                        $('#createEventModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Event Created!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
                     },
-                    error: function () {
-                        Swal.fire('Error', 'Failed to add discount.', 'error');
+                    error: function (xhr) {
+                        try {
+                            var res = JSON.parse(xhr.responseText);
+                            $('#validationSummary').html(res.errors ? res.errors.join("<br/>") : res.message);
+                        } catch {
+                            $('#validationSummary').html("Failed to create event.");
+                        }
+                        Swal.fire('Error', 'Failed to create event.', 'error');
+                    }
+                });
+            });
+
+            // Edit Event AJAX
+            $('#editEventForm').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: { "RequestVerificationToken": token },
+                    success: function () {
+                        $('#editEventModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Event Updated!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    },
+                    error: function (xhr) {
+                        $('#editValidationSummary').text("Failed to update event.");
+                        Swal.fire('Error', 'Failed to update event.', 'error');
                     }
                 });
             });
