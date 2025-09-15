@@ -91,11 +91,11 @@ namespace StarEventsTicketingSystem.Controllers
 
             ViewBag.Venues = _context.Venues.ToList();
 
-            // ✅ Wrap events in the ViewModel
+            // ✅ Wrap events + empty CreateEventViewModel for modal form
             var model = new ManageEventsViewModel
             {
                 Events = events,
-                NewEvent = new Event() // for the create modal
+                NewEvent = new CreateEventViewModel() // FIXED ✅
             };
 
             return View(model);
@@ -104,26 +104,71 @@ namespace StarEventsTicketingSystem.Controllers
         // ✅ Create Event (POST via AJAX JSON)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEvent([Bind(Prefix = "NewEvent")] Event newEvent)
+        public async Task<IActionResult> CreateEvent(ManageEventsViewModel model)
         {
-            if (newEvent == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest(new { success = false, message = "Invalid event data." });
+                return BadRequest(new { success = false, message = "Validation failed.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
             }
 
-            if (!TryValidateModel(newEvent))
+            var newEvent = new Event
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                              .Select(e => e.ErrorMessage)
-                                              .ToList();
-
-                return BadRequest(new { success = false, message = "Validation failed.", errors });
-            }
+                OrganizerID = model.NewEvent.OrganizerID,
+                VenueID = model.NewEvent.VenueID,
+                EventName = model.NewEvent.EventName,
+                Category = model.NewEvent.Category,
+                Date = model.NewEvent.Date,
+                Location = model.NewEvent.Location,
+                TicketPrice = model.NewEvent.TicketPrice,
+                Description = model.NewEvent.Description
+            };
 
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Event created successfully!" });
+            // ✅ Save discount if provided
+            if (!string.IsNullOrEmpty(model.NewEvent.DiscountCode) && model.NewEvent.DiscountPercentage.HasValue)
+            {
+                var discount = new Discount
+                {
+                    EventID = newEvent.EventID,
+                    Code = model.NewEvent.DiscountCode,
+                    DiscountPercentage = model.NewEvent.DiscountPercentage.Value,
+                    StartDate = model.NewEvent.DiscountStartDate ?? DateTime.Now,
+                    EndDate = model.NewEvent.DiscountEndDate ?? DateTime.Now.AddMonths(1)
+                };
+
+                _context.Discounts.Add(discount);
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true });
+        }
+
+        // ✅ Add discount separately (for existing events)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddDiscount(int eventId, string code, decimal percentage, DateTime startDate, DateTime endDate)
+        {
+            var ev = await _context.Events.FindAsync(eventId);
+            if (ev == null)
+            {
+                return NotFound(new { success = false, message = "Event not found." });
+            }
+
+            var discount = new Discount
+            {
+                EventID = eventId,
+                Code = code,
+                DiscountPercentage = percentage,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            _context.Discounts.Add(discount);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Discount added!" });
         }
 
         // ✅ Manage Users

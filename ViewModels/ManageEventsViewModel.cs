@@ -1,10 +1,12 @@
-﻿using StarEventsTicketingSystem.Models;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using StarEventsTicketingSystem.Models;
 
 namespace StarEventsTicketingSystem.ViewModels
 {
     public class ManageEventsViewModel
     {
+        [ValidateNever]
         public List<Event> Events { get; set; }
-        public Event NewEvent { get; set; } = new Event();
+        public CreateEventViewModel NewEvent { get; set; } = new();
     }
 }

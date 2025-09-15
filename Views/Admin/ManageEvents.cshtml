@@ -1,4 +1,5 @@
 ﻿@model StarEventsTicketingSystem.ViewModels.ManageEventsViewModel
+@using StarEventsTicketingSystem.ViewModels
 @using StarEventsTicketingSystem.Enums
 @{
     ViewData["Title"] = "Manage Events";
@@ -81,7 +82,7 @@
 <!-- Create Event Modal -->
 <div class="modal fade" id="createEventModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="createEventForm">
+        <form id="createEventForm" asp-action="CreateEvent" asp-controller="Admin" method="post">
             @Html.AntiForgeryToken()
             <div class="modal-content">
                 <div class="modal-header">
@@ -92,61 +93,92 @@
                     <div id="validationSummary" class="text-danger"></div>
 
                     <div class="mb-3">
-                        <label class="form-label">Organizer</label>
-                        <select name="NewEvent.OrganizerID" class="form-control" required>
-                            <option value="" disabled selected>-- Select Organizer --</option>
+                        <label asp-for="NewEvent.OrganizerID" class="form-label"></label>
+                        <select asp-for="NewEvent.OrganizerID" class="form-control" required>
+                            <option value="">-- Select Organizer --</option>
                             @foreach (var org in organizers)
                             {
                                 <option value="@org.Id">@org.FullName (@org.Email)</option>
                             }
                         </select>
+                        <span asp-validation-for="NewEvent.OrganizerID" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Venue</label>
-                        <select name="NewEvent.VenueID" class="form-control" required>
+                        <label asp-for="NewEvent.VenueID" class="form-label"></label>
+                        <select asp-for="NewEvent.VenueID" class="form-control" required>
                             <option value="">-- Select Venue --</option>
                             @foreach (var v in venues)
                             {
                                 <option value="@v.VenueID">@v.VenueName</option>
                             }
                         </select>
+                        <span asp-validation-for="NewEvent.VenueID" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input name="NewEvent.EventName" class="form-control" required />
+                        <label asp-for="NewEvent.EventName" class="form-label"></label>
+                        <input asp-for="NewEvent.EventName" class="form-control" required />
+                        <span asp-validation-for="NewEvent.EventName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <select name="NewEvent.Category" class="form-control" required>
+                        <label asp-for="NewEvent.Category" class="form-label"></label>
+                        <select asp-for="NewEvent.Category" class="form-control" required>
                             <option value="">-- Select Category --</option>
                             @foreach (var cat in categories)
                             {
                                 <option value="@cat">@cat</option>
                             }
                         </select>
+                        <span asp-validation-for="NewEvent.Category" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Date</label>
-                        <input name="NewEvent.Date" type="date" class="form-control" required />
+                        <label asp-for="NewEvent.Date" class="form-label"></label>
+                        <input asp-for="NewEvent.Date" type="date" class="form-control" required />
+                        <span asp-validation-for="NewEvent.Date" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Location</label>
-                        <input name="NewEvent.Location" class="form-control" required />
+                        <label asp-for="NewEvent.Location" class="form-label"></label>
+                        <input asp-for="NewEvent.Location" class="form-control" required />
+                        <span asp-validation-for="NewEvent.Location" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Ticket Price</label>
-                        <input name="NewEvent.TicketPrice" type="number" step="0.01" class="form-control" required />
+                        <label asp-for="NewEvent.TicketPrice" class="form-label"></label>
+                        <input asp-for="NewEvent.TicketPrice" type="number" step="0.01" class="form-control" required />
+                        <span asp-validation-for="NewEvent.TicketPrice" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea name="NewEvent.Description" class="form-control" required></textarea>
+                        <label asp-for="NewEvent.Description" class="form-label"></label>
+                        <textarea asp-for="NewEvent.Description" class="form-control" required></textarea>
+                        <span asp-validation-for="NewEvent.Description" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="NewEvent.DiscountCode" class="form-label">Discount Code (Optional)</label>
+                        <input asp-for="NewEvent.DiscountCode" class="form-control" />
+                        <span asp-validation-for="NewEvent.DiscountCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewEvent.DiscountPercentage" class="form-label">Discount % (Optional)</label>
+                        <input asp-for="NewEvent.DiscountPercentage" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="NewEvent.DiscountPercentage" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewEvent.DiscountStartDate" class="form-label">Discount Start Date (Optional)</label>
+                        <input asp-for="NewEvent.DiscountStartDate" type="date" class="form-control" />
+                        <span asp-validation-for="NewEvent.DiscountStartDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NewEvent.DiscountEndDate" class="form-label">Discount End Date (Optional)</label>
+                        <input asp-for="NewEvent.DiscountEndDate" type="date" class="form-control" />
+                        <span asp-validation-for="NewEvent.DiscountEndDate" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -162,9 +194,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // AJAX form submission with AntiForgeryToken
-                $('#createEventForm').submit(function (e) {
+            $('#createEventForm').submit(function (e) {
             e.preventDefault();
             var form = $(this);
+            var token = $('input[name="__RequestVerificationToken"]').val();
 
             // Log serialized data for debugging
             console.log("Serialized Form Data:", form.serialize());
@@ -172,7 +205,8 @@
             $.ajax({
                 url: '@Url.Action("CreateEvent", "Admin")',
                 type: 'POST',
-                data: form.serialize(), // ✅ no manual token append
+                data: form.serialize(),
+                headers: { "RequestVerificationToken": token },
                 success: function () {
                     $('#createEventModal').modal('hide');
                     Swal.fire({
@@ -193,6 +227,31 @@
                     }
                     Swal.fire('Error', 'Failed to create event.', 'error');
                 }
+            });
+
+            $('#addDiscountModal').on('show.bs.modal', function (e) {
+                var button = $(e.relatedTarget);
+                var eventId = button.data('eventid');
+                $('#DiscountEventId').val(eventId);
+            });
+
+            $('#addDiscountForm').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                $.ajax({
+                    url: '@Url.Action("AddDiscount", "Admin")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (res) {
+                        $('#addDiscountModal').modal('hide');
+                        Swal.fire('Success', 'Discount added successfully!', 'success')
+                            .then(() => location.reload());
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Failed to add discount.', 'error');
+                    }
+                });
             });
         });
 

@@ -28,6 +28,6 @@ namespace StarEventsTicketingSystem.Models
 
         // Navigation property: One Event can have many Discounts
         [ForeignKey("EventID")]
-        public required virtual Event Event { get; set; }
+        public virtual Event Event { get; set; }
     }
 }
