@@ -553,11 +553,71 @@ namespace StarEventsTicketingSystem.Controllers
             return Json(new { success = true, message = "User deleted successfully." });
         }
 
-        // ✅ Admin Settings (change password)
+        // GET: Admin Settings page
         [HttpGet]
-        public IActionResult Settings()
+        public async Task<IActionResult> Settings()
         {
-            return View();
+            var adminUser = await _userManager.GetUserAsync(User);
+            if (adminUser == null) return Unauthorized();
+
+            var model = new AdminProfileViewModel
+            {
+                FullName = adminUser.FullName,
+                Address = adminUser.Address
+            };
+
+            return View(model); // Views/Admin/Settings.cshtml
+        }
+
+        // POST: Update profile info
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(AdminProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please fix validation errors.";
+                return View("Settings", model);
+            }
+
+            var adminUser = await _userManager.GetUserAsync(User);
+            if (adminUser == null) return Unauthorized();
+
+            adminUser.FullName = model.FullName;
+            adminUser.Address = model.Address;
+            adminUser.UpdatedAt = DateTime.UtcNow;
+
+            var result = await _userManager.UpdateAsync(adminUser);
+            if (result.Succeeded)
+                TempData["SuccessMessage"] = "Profile updated successfully!";
+            else
+                TempData["ErrorMessage"] = string.Join(", ", result.Errors.Select(e => e.Description));
+
+            return RedirectToAction("Settings");
+        }
+
+        // POST: Change password
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(AdminProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Please fix validation errors.";
+                return View("Settings", model);
+            }
+
+            var adminUser = await _userManager.GetUserAsync(User);
+            if (adminUser == null) return Unauthorized();
+
+            var result = await _userManager.ChangePasswordAsync(adminUser, model.CurrentPassword, model.NewPassword);
+
+            if (result.Succeeded)
+                TempData["SuccessMessage"] = "Password changed successfully!";
+            else
+                TempData["ErrorMessage"] = string.Join(", ", result.Errors.Select(e => e.Description));
+
+            return RedirectToAction("Settings");
         }
 
         [HttpPost]

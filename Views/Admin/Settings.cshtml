@@ -1,60 +1,70 @@
-﻿@model StarEventsTicketingSystem.ViewModels.ChangePasswordViewModel
+﻿@model StarEventsTicketingSystem.ViewModels.AdminProfileViewModel
 
 @{
-    ViewData["Title"] = "Admin Settings - Change Password";
+    ViewData["Title"] = "Admin Settings";
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-center">🔒 Change Password</h2>
+    <h2 class="mb-4 text-center">⚙️ Admin Settings</h2>
 
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-
-            <form asp-action="Settings" method="post">
-                <div asp-validation-summary="All" class="text-danger"></div>
-
-                <!-- Current Password -->
+    <!-- Profile Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            Update Profile
+        </div>
+        <div class="card-body">
+            <form asp-action="UpdateProfile" method="post">
                 <div class="mb-3">
-                    <label asp-for="CurrentPassword" class="form-label"></label>
-                    <input asp-for="CurrentPassword" class="form-control" />
-                    <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
                 </div>
-
-                <!-- New Password -->
                 <div class="mb-3">
-                    <label asp-for="NewPassword" class="form-label"></label>
-                    <input asp-for="NewPassword" class="form-control" />
-                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                    <label asp-for="Address" class="form-label"></label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
                 </div>
-
-                <!-- Confirm New Password -->
-                <div class="mb-3">
-                    <label asp-for="ConfirmNewPassword" class="form-label"></label>
-                    <input asp-for="ConfirmNewPassword" class="form-control" />
-                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">Update Password</button>
+                <button type="submit" class="btn btn-success w-100">💾 Save Profile</button>
             </form>
-
-            <!-- Success message -->
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success mt-3">
-                    @TempData["SuccessMessage"]
-                </div>
-            }
-
-            <!-- Error message -->
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger mt-3">
-                    @TempData["ErrorMessage"]
-                </div>
-            }
-
         </div>
     </div>
+
+    <!-- Password Section -->
+    <div class="card">
+        <div class="card-header bg-warning">
+            Change Password
+        </div>
+        <div class="card-body">
+            <form asp-action="ChangePassword" method="post">
+                <div class="mb-3">
+                    <label asp-for="CurrentPassword" class="form-label"></label>
+                    <input asp-for="CurrentPassword" class="form-control" type="password" />
+                    <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="NewPassword" class="form-label"></label>
+                    <input asp-for="NewPassword" class="form-control" type="password" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ConfirmNewPassword" class="form-label"></label>
+                    <input asp-for="ConfirmNewPassword" class="form-control" type="password" />
+                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">🔑 Update Password</button>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+    }
 </div>
 
 @section Scripts {
