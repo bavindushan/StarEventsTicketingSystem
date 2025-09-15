@@ -308,6 +308,88 @@ namespace StarEventsTicketingSystem.Controllers
             }
         }
 
+        // GET: Manage Venues
+        public IActionResult ManageVenues()
+        {
+            // Fetch all venues from DB
+            var venues = _context.Venues
+                .OrderBy(v => v.VenueName)
+                .ToList();
+
+            return View(venues); // pass list to the view
+        }
+
+        // GET: Fetch venue for edit
+        public IActionResult GetVenue(int id)
+        {
+            var venue = _context.Venues.FirstOrDefault(v => v.VenueID == id);
+            if (venue == null)
+                return NotFound(new { message = "Venue not found." });
+
+            return Json(venue);
+        }
+
+        // POST: Add venue
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddVenue(Venue model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+
+            _context.Venues.Add(model);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        // POST: Edit venue
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditVenue(Venue model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+
+            var venue = await _context.Venues.FindAsync(model.VenueID);
+            if (venue == null)
+                return NotFound(new { message = "Venue not found." });
+
+            venue.VenueName = model.VenueName;
+            venue.Address = model.Address;
+            venue.City = model.City;
+            venue.Capacity = model.Capacity;
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        // POST: Delete venue
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteVenue(int id)
+        {
+            var venue = await _context.Venues
+                .Include(v => v.Events) // Include related events if needed
+                .FirstOrDefaultAsync(v => v.VenueID == id);
+
+            if (venue == null)
+                return NotFound(new { message = "Venue not found." });
+
+            try
+            {
+                // Optional: prevent deletion if venue has events
+                if (venue.Events.Any())
+                    return BadRequest(new { message = "Cannot delete venue with assigned events." });
+
+                _context.Venues.Remove(venue);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to delete venue.", error = ex.Message });
+            }
+        }
 
         // ✅ Manage Users
         public IActionResult ManageUsers()

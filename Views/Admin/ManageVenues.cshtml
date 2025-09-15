@@ -1,8 +1,230 @@
-﻿@{
+﻿@model List<StarEventsTicketingSystem.Models.Venue>
+@{
     ViewData["Title"] = "Manage Venues";
 }
 
 <div class="container py-4">
     <h1 class="mb-4">Manage Venues</h1>
-    <p class="text-muted">This is where Admins can add or edit venue information.</p>
+
+    <!-- Add Venue Button -->
+    <div class="mb-3 text-end">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addVenueModal">➕ Add Venue</button>
+    </div>
+
+    <!-- Venues Table -->
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Venue Name</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Capacity</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var venue in Model)
+            {
+                <tr>
+                    <td>@venue.VenueName</td>
+                    <td>@venue.Address</td>
+                    <td>@venue.City</td>
+                    <td>@venue.Capacity</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="editVenue(@venue.VenueID)">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteVenue(@venue.VenueID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
+
+<!-- Add Venue Modal -->
+<div class="modal fade" id="addVenueModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="addVenueForm" method="post" asp-action="AddVenue" asp-controller="Admin">
+            @Html.AntiForgeryToken()
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Venue</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="addVenueValidation" class="text-danger mb-2"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Venue Name</label>
+                        <input type="text" name="VenueName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="Address" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">City</label>
+                        <input type="text" name="City" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacity</label>
+                        <input type="number" name="Capacity" class="form-control" required min="1" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add Venue</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Venue Modal -->
+<div class="modal fade" id="editVenueModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editVenueForm" method="post" asp-action="EditVenue" asp-controller="Admin">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="EditVenueID" name="VenueID" />
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Venue</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editVenueValidation" class="text-danger mb-2"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Venue Name</label>
+                        <input type="text" id="EditVenueName" name="VenueName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="EditAddress" name="Address" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">City</label>
+                        <input type="text" id="EditCity" name="City" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacity</label>
+                        <input type="number" id="EditCapacity" name="Capacity" class="form-control" required min="1" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+
+            // Add Venue AJAX
+            $('#addVenueForm').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: { "RequestVerificationToken": token },
+                    success: function () {
+                        $('#addVenueModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Venue Added!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    },
+                    error: function (xhr) {
+                        try {
+                            var res = JSON.parse(xhr.responseText);
+                            $('#addVenueValidation').html(res.errors ? res.errors.join("<br/>") : res.message);
+                        } catch {
+                            $('#addVenueValidation').html("Failed to add venue.");
+                        }
+                    }
+                });
+            });
+
+            // Edit Venue AJAX
+            $('#editVenueForm').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: { "RequestVerificationToken": token },
+                    success: function () {
+                        $('#editVenueModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Venue Updated!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    },
+                    error: function () {
+                        $('#editVenueValidation').html("Failed to update venue.");
+                    }
+                });
+            });
+        });
+
+        // Open Edit Modal
+        function editVenue(venueId) {
+            $.get('/Admin/GetVenue', { id: venueId }, function (data) {
+                $('#EditVenueID').val(data.venueID);
+                $('#EditVenueName').val(data.venueName);
+                $('#EditAddress').val(data.address);
+                $('#EditCity').val(data.city);
+                $('#EditCapacity').val(data.capacity);
+
+                $('#editVenueModal').modal('show');
+            });
+        }
+
+        // Delete Venue
+        function deleteVenue(venueId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will permanently delete the venue!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Admin/DeleteVenue',
+                        type: 'POST',
+                        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                        data: { id: venueId },
+                        success: function () {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Failed to delete venue.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
