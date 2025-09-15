@@ -1,0 +1,202 @@
+﻿@model IEnumerable<StarEventsTicketingSystem.Models.Event>
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Admin Reports";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<div class="container mt-4">
+    <h2>Sales & Revenue Report</h2>
+
+    <div class="row g-3 align-items-end mb-4">
+        <div class="col-md-4">
+            <label class="form-label">Select Organizer</label>
+            <select id="organizerSelect" class="form-select">
+                <option value="">-- All Organizers --</option>
+                @foreach (var org in ViewBag.Organizers)
+                {
+                    <option value="@org.Id">@org.FullName</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Select Event</label>
+            <select id="eventSelect" class="form-select">
+                <option value="">-- All Events --</option>
+                @foreach (var ev in ViewBag.Events)
+                {
+                    <option value="@ev.EventID">@ev.EventName (@ev.Date.ToString("yyyy-MM-dd"))</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">From</label>
+            <input id="fromDate" type="date" class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">To</label>
+            <input id="toDate" type="date" class="form-control" />
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <canvas id="salesChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <div id="noData" class="alert alert-info d-none">No sales data for selected filters.</div>
+
+    <div id="dataTableContainer" class="card d-none">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Data (by date)</h5>
+                <div>
+                    <button id="downloadCSV" class="btn btn-sm btn-outline-success me-2">Download CSV</button>
+                    <button id="downloadPDF" class="btn btn-sm btn-outline-danger">Download PDF</button>
+                </div>
+            </div>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Tickets Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody"></tbody>
+                <tfoot>
+                    <tr>
+                        <th>Total</th>
+                        <th id="totalTickets">0</th>
+                        <th id="totalRevenue">$0.00</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let chart = null;
+    let lastData = [];
+
+    function formatCurrency(v) {
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(v);
+    }
+
+    async function loadReport() {
+        const organizerId = document.getElementById('organizerSelect').value;
+        const eventId = document.getElementById('eventSelect').value;
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+
+        let url = `/Admin/GetReportData?organizerId=${organizerId}&eventId=${eventId}`;
+        if (fromDate) url += `&fromDate=${encodeURIComponent(fromDate)}`;
+        if (toDate) url += `&toDate=${encodeURIComponent(toDate)}`;
+
+        const res = await fetch(url);
+        if (!res.ok) { Swal.fire('Error', 'Failed to load data.', 'error'); return; }
+
+        const data = await res.json();
+        lastData = data;
+
+        if (!data || data.length === 0) {
+            document.getElementById('dataTableContainer').classList.add('d-none');
+            document.getElementById('noData').classList.remove('d-none');
+            if (chart) { chart.data.labels = []; chart.data.datasets.forEach(ds => ds.data = []); chart.update(); }
+            return;
+        }
+
+        document.getElementById('noData').classList.add('d-none');
+        document.getElementById('dataTableContainer').classList.remove('d-none');
+
+        const labels = data.map(x => x.date);
+        const revenue = data.map(x => parseFloat(x.revenue));
+        const tickets = data.map(x => parseInt(x.ticketsSold));
+
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        if (!chart) {
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Revenue', data: revenue, yAxisID: 'y', tension: 0.2, fill: false, borderWidth: 2 },
+                        { label: 'Tickets Sold', data: tickets, yAxisID: 'yTickets', tension: 0.2, fill: false, borderDash: [5,5], borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    stacked: false,
+                    scales: {
+                        y: { type: 'linear', position: 'left', title: { display: true, text: 'Revenue (USD)' } },
+                        yTickets: { type: 'linear', position: 'right', title: { display: true, text: 'Tickets Sold' }, grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+        } else {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = revenue;
+            chart.data.datasets[1].data = tickets;
+            chart.update();
+        }
+
+        // Populate table
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+        let totTickets = 0, totRevenue = 0;
+        data.forEach(r => {
+            const tr = document.createElement('tr');
+            const rev = parseFloat(r.revenue), tix = parseInt(r.ticketsSold);
+            tr.innerHTML = `<td>${r.date}</td><td>${tix}</td><td>${formatCurrency(rev)}</td>`;
+            tbody.appendChild(tr);
+            totTickets += tix; totRevenue += rev;
+        });
+        document.getElementById('totalTickets').innerText = totTickets;
+        document.getElementById('totalRevenue').innerText = formatCurrency(totRevenue);
+    }
+
+    document.getElementById('organizerSelect').addEventListener('change', loadReport);
+    document.getElementById('eventSelect').addEventListener('change', loadReport);
+    document.getElementById('fromDate').addEventListener('change', loadReport);
+    document.getElementById('toDate').addEventListener('change', loadReport);
+
+    // CSV / PDF
+    document.getElementById('downloadCSV').addEventListener('click', () => {
+        if (!lastData || lastData.length === 0) return;
+        let csv = 'Date,Tickets Sold,Revenue\n';
+        lastData.forEach(r => csv += `${r.date},${r.ticketsSold},${r.revenue}\n`);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'AdminReport.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('downloadPDF').addEventListener('click', () => {
+        if (!lastData || lastData.length === 0) return;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Admin Report", 14, 20);
+        doc.autoTable({
+            head: [['Date', 'Tickets Sold', 'Revenue']],
+            body: lastData.map(r => [r.date, r.ticketsSold, r.revenue.toFixed(2)])
+        });
+        doc.save('AdminReport.pdf');
+    });
+
+    loadReport();
+</script>

@@ -553,12 +553,6 @@ namespace StarEventsTicketingSystem.Controllers
             return Json(new { success = true, message = "User deleted successfully." });
         }
 
-        // ✅ Reports (placeholder)
-        public IActionResult Reports()
-        {
-            return View();
-        }
-
         // ✅ Admin Settings (change password)
         [HttpGet]
         public IActionResult Settings()
@@ -589,6 +583,85 @@ namespace StarEventsTicketingSystem.Controllers
                 ModelState.AddModelError("", error.Description);
 
             return View(model);
+        }
+
+        // GET: Admin/Reports
+        public async Task<IActionResult> Reports()
+        {
+            // Load all events for dropdown
+            var events = await _context.Events
+                .OrderByDescending(e => e.Date)
+                .ToListAsync();
+
+            // Load organizers for dropdown
+            var organizerRole = await _roleManager.Roles.FirstOrDefaultAsync(r => r.Name == "Organizer");
+            List<ApplicationUser> organizers = new List<ApplicationUser>();
+            if (organizerRole != null)
+            {
+                var organizerIds = _context.UserRoles
+                    .Where(ur => ur.RoleId == organizerRole.Id)
+                    .Select(ur => ur.UserId)
+                    .ToList();
+
+                organizers = _userManager.Users
+                    .Where(u => organizerIds.Contains(u.Id))
+                    .ToList();
+            }
+
+            ViewBag.Events = events;
+            ViewBag.Organizers = organizers;
+
+            return View("~/Views/Admin/AdminReports.cshtml");
+        }
+
+        // GET: Admin/GetReportData?organizerId=&eventId=&fromDate=&toDate=
+        [HttpGet]
+        public async Task<IActionResult> GetReportData(string organizerId, int? eventId, DateTime? fromDate, DateTime? toDate)
+        {
+            var bookingsQuery = _context.Bookings
+                .Include(b => b.Event)
+                .Include(b => b.Payment)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(organizerId))
+                bookingsQuery = bookingsQuery.Where(b => b.Event.OrganizerID == organizerId);
+
+            if (eventId.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.EventID == eventId.Value);
+
+            bookingsQuery = bookingsQuery.Where(b => b.Payment.PaymentStatus == "Paid");
+
+            if (fromDate.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.BookingDate >= fromDate.Value.Date);
+            if (toDate.HasValue)
+                bookingsQuery = bookingsQuery.Where(b => b.BookingDate < toDate.Value.Date.AddDays(1));
+
+            var revenueByDate = await bookingsQuery
+                .GroupBy(b => b.BookingDate.Date)
+                .Select(g => new { Date = g.Key, Revenue = g.Sum(b => b.TotalAmount) })
+                .ToListAsync();
+
+            var ticketsByDate = await bookingsQuery
+                .SelectMany(b => b.Tickets)
+                .GroupBy(t => t.Booking.BookingDate.Date)
+                .Select(g => new { Date = g.Key, Tickets = g.Count() })
+                .ToListAsync();
+
+            // Merge date sets
+            var dates = revenueByDate.Select(r => r.Date)
+                        .Union(ticketsByDate.Select(t => t.Date))
+                        .Distinct()
+                        .OrderBy(d => d)
+                        .ToList();
+
+            var result = dates.Select(d => new
+            {
+                date = d.ToString("yyyy-MM-dd"),
+                revenue = revenueByDate.FirstOrDefault(r => r.Date == d)?.Revenue ?? 0m,
+                ticketsSold = ticketsByDate.FirstOrDefault(t => t.Date == d)?.Tickets ?? 0
+            }).ToList();
+
+            return Ok(result);
         }
     }
 }
