@@ -9,6 +9,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace StarEventsTicketingSystem.Controllers
 {
@@ -276,6 +277,37 @@ namespace StarEventsTicketingSystem.Controllers
             await _context.SaveChangesAsync();
             return Json(new { success = true });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteEvent(int id)
+        {
+            var ev = _context.Events
+                             .Include(e => e.Discounts) // make sure to include related discounts
+                             .FirstOrDefault(e => e.EventID == id);
+
+            if (ev == null)
+                return NotFound(new { message = "Event not found." });
+
+            try
+            {
+                // Delete discounts first
+                if (ev.Discounts.Any())
+                {
+                    _context.Discounts.RemoveRange(ev.Discounts);
+                }
+
+                // Then delete event
+                _context.Events.Remove(ev);
+                _context.SaveChanges();
+                return Ok(new { message = "Event and related discounts deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to delete event.", error = ex.Message });
+            }
+        }
+
 
         // ✅ Manage Users
         public IActionResult ManageUsers()
