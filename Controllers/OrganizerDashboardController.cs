@@ -114,6 +114,18 @@ namespace StarEventsTicketingSystem.Controllers
 
             _context.SaveChanges();
 
+            // ✅ Audit log: Event edited
+            //var user = await _userManager.GetUserAsync(User);
+            //if (user != null)
+            //{
+            //    var auditLogController = new AuditLogController(_context);
+            //    await auditLogController.InsertLog(
+            //        userId: user.Id,
+            //        action: AuditLogAction.EditEvent,
+            //        details: $"Edited event: {ev.EventName} (EventID: {ev.EventID})"
+            //    );
+            //}
+
             return Json(new { success = true });
         }
 
@@ -228,6 +240,14 @@ namespace StarEventsTicketingSystem.Controllers
             if (result.Succeeded)
             {
                 TempData["Success"] = "Profile updated successfully!";
+
+                // ✅ Audit log: Profile updated
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.UpdateProfile,
+                    details: "Organizer updated profile information."
+                );
             }
             else
             {
@@ -254,6 +274,14 @@ namespace StarEventsTicketingSystem.Controllers
             if (result.Succeeded)
             {
                 TempData["Success"] = "Password updated successfully!";
+
+                // ✅ Audit log: Password changed
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.ChangePassword,
+                    details: "Organizer changed their password."
+                );
             }
             else
             {

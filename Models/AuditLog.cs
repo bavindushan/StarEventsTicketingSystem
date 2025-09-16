@@ -24,6 +24,6 @@ namespace StarEventsTicketingSystem.Models
 
         // Navigation property: one user can have many audit logs
         [ForeignKey("UserID")]
-        public required virtual ApplicationUser User { get; set; }
+        public virtual ApplicationUser User { get; set; }
     }
 }

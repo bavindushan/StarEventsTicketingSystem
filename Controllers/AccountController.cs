@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using StarEventsTicketingSystem.Models;
 using StarEventsTicketingSystem.ViewModels;
+using StarEventsTicketingSystem.Enums;
 using System;
 using System.Threading.Tasks;
+using StarEventsTicketingSystem.Data;
 
 namespace StarEventsTicketingSystem.Controllers
 {
@@ -12,15 +14,18 @@ namespace StarEventsTicketingSystem.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _context = context;
         }
 
         // GET: /Account/Register
@@ -66,6 +71,14 @@ namespace StarEventsTicketingSystem.Controllers
                 }
                 await _userManager.AddToRoleAsync(user, model.Role);
 
+                // 🔹 Audit Log → Account Registered
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    user.Id,
+                    AuditLogAction.Register,
+                    $"User registered with email {user.Email}, Role: {model.Role}"
+                );
+
                 return RedirectToAction("Login", "Account");
             }
 
@@ -91,13 +104,11 @@ namespace StarEventsTicketingSystem.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // Sign in using email
             var result = await _signInManager.PasswordSignInAsync(
                 model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
 
             if (result.Succeeded)
             {
-                // Get the logged-in user
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null)
                 {
@@ -106,10 +117,16 @@ namespace StarEventsTicketingSystem.Controllers
                     return View(model);
                 }
 
-                // Get roles
+                // 🔹 Audit Log → Successful Login
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    user.Id,
+                    AuditLogAction.Login,
+                    $"User logged in with email {user.Email}"
+                );
+
                 var roles = await _userManager.GetRolesAsync(user);
 
-                // Redirect based on role
                 if (roles.Contains("Admin"))
                     return RedirectToAction("Dashboard", "Admin");
                 else if (roles.Contains("Organizer"))
@@ -118,8 +135,18 @@ namespace StarEventsTicketingSystem.Controllers
                     return RedirectToAction("Index", "CustomerDashboard");
                 else
                     return RedirectToAction("Index", "Home");
-
             }
+
+            // 🔹 Audit Log → Failed Login Attempt
+            var failedUser = await _userManager.FindByEmailAsync(model.Email);
+            var failedUserId = failedUser?.Id ?? "Unknown";
+
+            var auditLogFailedController = new AuditLogController(_context);
+            await auditLogFailedController.InsertLog(
+                failedUserId,
+                AuditLogAction.LoginFailed,
+                $"Failed login attempt for email {model.Email}"
+            );
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return View(model);
@@ -130,7 +157,22 @@ namespace StarEventsTicketingSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            var userId = _userManager.GetUserId(User);
+            var userEmail = _userManager.GetUserName(User);
+
             await _signInManager.SignOutAsync();
+
+            // 🔹 Audit Log → Logout
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId,
+                    AuditLogAction.Logout,
+                    $"User {userEmail} logged out"
+                );
+            }
+
             return RedirectToAction("Index", "Home");
         }
     }

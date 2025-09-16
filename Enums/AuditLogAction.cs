@@ -6,6 +6,21 @@
         BookTicket,
         CancelTicket,
         Payment,
-        Refund
+        Refund,
+        ChangePassword,       
+        ViewBookingHistory,
+        ViewEventDetails,
+        ViewDashboard,
+        ViewEvents,
+        EditEvent,
+        DeleteEvent,
+        UpdateProfile,
+        CreateCheckoutSession,
+        PaymentSuccess,
+        PaymentCancel,
+        Register,
+        Login,
+        LoginFailed,
+        Logout
     }
 }

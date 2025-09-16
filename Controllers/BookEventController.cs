@@ -77,6 +77,14 @@ namespace StarEventsTicketingSystem.Controllers
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
+                // ✅ Insert audit log
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.BookTicket,
+                    details: $"Booked {quantity} ticket(s) for event: {ev.EventName} (BookingID: {booking.BookingID})"
+                );
+
                 return Json(new { success = true, message = "Booking created! Proceed to payment.", bookingId = booking.BookingID });
             }
             catch (Exception ex)

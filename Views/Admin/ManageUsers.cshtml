@@ -210,7 +210,7 @@
             modal.show();
         }
 
-                function deleteUser(userId) {
+        function deleteUser(userId) {
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You won't be able to revert this!",
@@ -239,6 +239,36 @@
                     }
                 }
             });
+        }
+
+        async function viewUserDetails(userId) {
+            try {
+                const response = await fetch(`/Admin/GetUser?id=${userId}`);
+                if (!response.ok) {
+                    Swal.fire("Error", "Failed to fetch user details.", "error");
+                    return;
+                }
+
+                const user = await response.json();
+
+                // Example: show details in SweetAlert
+                Swal.fire({
+                    title: user.fullName,
+                    html: `
+                        <p><b>Email:</b> ${user.email}</p>
+                        <p><b>Phone:</b> ${user.phoneNumber || "N/A"}</p>
+                        <p><b>Role:</b> ${user.role}</p>
+                        <p><b>Address:</b> ${user.address || "N/A"}</p>
+                        <p><b>Created:</b> ${new Date(user.createdAt).toLocaleString()}</p>
+                        <p><b>Updated:</b> ${new Date(user.updatedAt).toLocaleString()}</p>
+                    `,
+                    icon: "info"
+                });
+
+            } catch (err) {
+                console.error("Error fetching user details:", err);
+                Swal.fire("Error", "Something went wrong while fetching user details.", "error");
+            }
         }
     </script>
 }

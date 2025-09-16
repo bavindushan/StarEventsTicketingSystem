@@ -104,6 +104,17 @@ namespace StarEventsTicketingSystem.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
+            // Audit log: Viewed booking history
+            if (user != null)
+            {
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.ViewBookingHistory,
+                    details: $"Viewed booking history from {fromDate?.ToShortDateString() ?? "N/A"} to {toDate?.ToShortDateString() ?? "N/A"} for event: {eventName ?? "All"}"
+                );
+            }
+
             var bookingsQuery = _context.Bookings
                 .Include(b => b.Event)
                 .Where(b => b.UserID == user.Id)
@@ -168,6 +179,14 @@ namespace StarEventsTicketingSystem.Controllers
 
             if (result.Succeeded)
             {
+                // ✅ Audit log: Password changed
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.ChangePassword,
+                    details: "Customer changed their password."
+                );
+
                 TempData["SuccessMessage"] = "Password changed successfully.";
                 return RedirectToAction("Profile");
             }
@@ -191,6 +210,17 @@ namespace StarEventsTicketingSystem.Controllers
                 return NotFound();
 
             var user = await _userManager.GetUserAsync(User);
+
+            // Audit log: Customer viewed event details
+            if (user != null)
+            {
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.ViewEventDetails,
+                    details: $"Viewed details for event: {ev.EventName} (EventID: {ev.EventID})"
+                );
+            }
 
             // Calculate available tickets
             int bookedTickets = await _context.Tickets

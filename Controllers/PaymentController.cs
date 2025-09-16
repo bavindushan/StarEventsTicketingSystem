@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using StarEventsTicketingSystem.Data;
+using StarEventsTicketingSystem.Models;
 using Stripe;
 using Stripe.Checkout;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using StarEventsTicketingSystem.Enums;
 
 namespace StarEventsTicketingSystem.Controllers
 {
@@ -13,11 +16,13 @@ namespace StarEventsTicketingSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PaymentController(ApplicationDbContext context, IConfiguration configuration)
+        public PaymentController(ApplicationDbContext context, IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _configuration = configuration;
+            _userManager = userManager;
 
             StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
         }
@@ -69,6 +74,18 @@ namespace StarEventsTicketingSystem.Controllers
             _context.Update(booking);
             await _context.SaveChangesAsync();
 
+            // ✅ Audit log: checkout session created
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.CreateCheckoutSession,
+                    details: $"Created checkout session for BookingID {booking.BookingID}, Event: {booking.Event.EventName}, Amount: {booking.TotalAmount}"
+                );
+            }
+
             return Json(new { id = session.Id, url = session.Url });
         }
 
@@ -82,8 +99,19 @@ namespace StarEventsTicketingSystem.Controllers
 
             if (booking == null) return NotFound();
 
-            ViewBag.BookingId = booking.BookingID;
+            // ✅ Audit log: payment success
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.PaymentSuccess,
+                    details: $"Payment successful for BookingID {booking.BookingID}, Event: {booking.Event.EventName}, Amount: {booking.TotalAmount}"
+                );
+            }
 
+            ViewBag.BookingId = booking.BookingID;
             return View("PaymentSuccess", booking);
         }
 
@@ -96,6 +124,18 @@ namespace StarEventsTicketingSystem.Controllers
                 .FirstOrDefaultAsync(b => b.BookingID == bookingId);
 
             if (booking == null) return NotFound();
+
+            // ✅ Audit log: payment cancelled
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var auditLogController = new AuditLogController(_context);
+                await auditLogController.InsertLog(
+                    userId: user.Id,
+                    action: AuditLogAction.PaymentCancel,
+                    details: $"Payment cancelled for BookingID {booking.BookingID}, Event: {booking.Event.EventName}"
+                );
+            }
 
             return View("PaymentCancel", booking);
         }

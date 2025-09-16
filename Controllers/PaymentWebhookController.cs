@@ -70,6 +70,14 @@ namespace StarEventsTicketingSystem.Controllers
                         }
 
                         await _context.SaveChangesAsync();
+
+                        // 🔹 Add Audit Log after successful payment
+                        var auditLogController = new AuditLogController(_context);
+                        await auditLogController.InsertLog(
+                            booking.UserID,
+                            AuditLogAction.Payment,
+                            $"Payment successful for booking ID {booking.BookingID}, Event: {booking.Event.EventName}, Amount: {booking.TotalAmount}"
+                        );
                     }
                 }
 
