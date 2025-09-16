@@ -73,6 +73,8 @@ namespace StarEventsTicketingSystem.Controllers
             ViewBag.Locations = events.Select(e => e.Location).Distinct().ToList();
             ViewBag.Categories = Enum.GetValues(typeof(EventCategory)).Cast<EventCategory>().ToList();
 
+            ViewBag.Venues = _context.Venues.ToList();
+
             return View("~/Views/Organizer/Dashboard/Events.cshtml", events);
         }
 
@@ -290,8 +292,84 @@ namespace StarEventsTicketingSystem.Controllers
 
             return RedirectToAction("Profile");
         }
-    }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateEvent([FromBody] CreateEventViewModel model)
+        {
+            if (model == null)
+                return Json(new { success = false, message = "Invalid request." });
+
+            // ✅ Force OrganizerID from logged-in user
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            model.OrganizerID = user.Id;
+
+            // ✅ Basic validation for required fields
+            if (model.VenueID <= 0 ||
+                string.IsNullOrWhiteSpace(model.EventName) ||
+                model.Category < 0 ||
+                string.IsNullOrWhiteSpace(model.Location) ||
+                model.Date == default ||
+                model.TicketPrice <= 0)
+            {
+                return Json(new { success = false, message = "Please fill in all required fields with valid values." });
+            }
+
+            // ✅ Create Event
+            var newEvent = new Event
+            {
+                OrganizerID = model.OrganizerID,
+                VenueID = model.VenueID,
+                EventName = model.EventName.Trim(),
+                Category = model.Category,
+                Date = model.Date,
+                Location = model.Location.Trim(),
+                TicketPrice = model.TicketPrice,
+                Description = model.Description?.Trim()
+            };
+
+            _context.Events.Add(newEvent);
+            await _context.SaveChangesAsync();
+
+            // ✅ Optional Discount
+            if (!string.IsNullOrWhiteSpace(model.DiscountCode) && model.DiscountPercentage.HasValue)
+            {
+                // Ensure percentage is within 0-100
+                if (model.DiscountPercentage < 0 || model.DiscountPercentage > 100)
+                {
+                    return Json(new { success = false, message = "Discount percentage must be between 0 and 100." });
+                }
+
+                var discount = new Discount
+                {
+                    EventID = newEvent.EventID,
+                    Code = model.DiscountCode.Trim(),
+                    DiscountPercentage = model.DiscountPercentage.Value,
+                    StartDate = model.DiscountStartDate ?? DateTime.Now,
+                    EndDate = model.DiscountEndDate ?? DateTime.Now.AddMonths(1)
+                };
+
+                // Validate discount dates
+                if (discount.EndDate < discount.StartDate)
+                {
+                    return Json(new { success = false, message = "Discount end date cannot be before start date." });
+                }
+
+                _context.Discounts.Add(discount);
+                await _context.SaveChangesAsync();
+            }
+
+            // ✅ Audit log
+            var auditLogController = new AuditLogController(_context);
+            await auditLogController.InsertLog(
+                userId: user.Id,
+                action: AuditLogAction.CreateEvent,
+                details: $"Organizer created event: {newEvent.EventName} (ID: {newEvent.EventID})"
+            );
+
+            return Json(new { success = true, message = "Event created successfully!" });
+        }
+    }
     // For safer binding of DeleteEvent JSON
     public class DeleteEventRequest
     {
