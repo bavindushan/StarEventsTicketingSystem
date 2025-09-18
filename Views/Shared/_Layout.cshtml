@@ -8,16 +8,122 @@
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- FontAwesome & Three.js -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <!-- Custom styles -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/StarEventsTicketingSystem.styles.css" asp-append-version="true" />
+
+    <style>
+        /* Glass navbar */
+        nav.glass-navbar {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* Glowing Gradient Brand */
+        .navbar-brand.glow-text {
+            font-weight: 800;
+            font-size: 1.6rem;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glowGradient 5s ease infinite;
+        }
+
+        @@keyframes glowGradient {
+            0%
+
+        {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+
+        }
+
+        nav.glass-navbar .nav-link {
+            color: rgba(255,255,255,0.85);
+            margin-left: 0.5rem;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+            nav.glass-navbar .nav-link:hover {
+                color: #ff6b6b;
+                transform: translateY(-2px);
+            }
+
+        nav.glass-navbar .btn-register {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 8px 22px;
+            transition: all 0.3s ease;
+        }
+
+            nav.glass-navbar .btn-register:hover {
+                transform: scale(1.05);
+                box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+            }
+
+        /* Footer Glass */
+        footer.glass-footer {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding: 25px 0;
+            color: rgba(255,255,255,0.7);
+        }
+
+            footer.glass-footer a {
+                color: #ff6b6b;
+                text-decoration: none;
+                transition: color 0.3s;
+            }
+
+                footer.glass-footer a:hover {
+                    color: #4ecdc4;
+                }
+
+        /* Three.js Canvas */
+        #three-canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        body {
+            background: linear-gradient(45deg,#0f0f23,#1a1a2e,#16213e);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+        }
+    </style>
 </head>
 <body>
+    <!-- Three.js Background -->
+    <canvas id="three-canvas-bg"></canvas>
+
     <!-- Navbar -->
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <nav class="navbar navbar-expand-lg glass-navbar shadow-sm py-3">
             <div class="container">
-                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand glow-text" asp-area="" asp-controller="Home" asp-action="Index">
                     ⭐ Star Events
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -27,7 +133,7 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-center">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
@@ -38,9 +144,7 @@
                             <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-light text-primary px-3 ms-2" asp-area="" asp-controller="Account" asp-action="Register">
-                                Register
-                            </a>
+                            <a class="btn btn-register ms-2" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
                         </li>
                     </ul>
                 </div>
@@ -56,11 +160,11 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-light border-top py-3 mt-auto">
-        <div class="container text-center">
+    <footer class="glass-footer text-center">
+        <div class="container">
             <p class="mb-0">
                 &copy; 2025 - <strong>StarEventsTicketingSystem</strong> |
-                <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-decoration-none">Privacy</a>
+                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
             </p>
         </div>
     </footer>
@@ -68,6 +172,41 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Three.js Animated Background -->
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas-bg'), alpha:true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000,0);
+
+        // Particles
+        const geometry = new THREE.BufferGeometry();
+        const count = 1500;
+        const positions = new Float32Array(count*3);
+        for(let i=0;i<count*3;i++){ positions[i]=(Math.random()-0.5)*100; }
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions,3));
+        const material = new THREE.PointsMaterial({ size:0.8, color:0x667eea, transparent:true, opacity:0.7 });
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        camera.position.z=30;
+        function animate(){
+            requestAnimationFrame(animate);
+            points.rotation.x += 0.001;
+            points.rotation.y += 0.002;
+            renderer.render(scene,camera);
+        }
+        animate();
+
+        window.addEventListener('resize', ()=>{
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
