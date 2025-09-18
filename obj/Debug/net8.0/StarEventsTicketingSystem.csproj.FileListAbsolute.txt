@@ -50,6 +50,8 @@ C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assig
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\System.Memory.Data.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\System.Runtime.Caching.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
+C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\X.PagedList.dll
+C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\X.PagedList.Mvc.Core.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\cs\Microsoft.CodeAnalysis.resources.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\de\Microsoft.CodeAnalysis.resources.dll
 C:\Users\Bavindu Shan\Documents\Top-Up(BEng. Hons Software Engineering)\AD\Assignments\CW-2\Project\StarEventsTicketingSystem\bin\Debug\net8.0\es\Microsoft.CodeAnalysis.resources.dll

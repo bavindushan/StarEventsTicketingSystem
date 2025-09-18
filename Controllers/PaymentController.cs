@@ -39,7 +39,7 @@ namespace StarEventsTicketingSystem.Controllers
             if (booking.Payment == null) return BadRequest("No payment record found for booking.");
             if (booking.Payment.PaymentStatus == "Paid") return BadRequest("Booking already paid.");
 
-            var domain = _configuration["AppSettings:Domain"]; // e.g., https://localhost:5166
+            var domain = _configuration["AppSettings:Domain"]; 
 
             var options = new SessionCreateOptions
             {

@@ -38,10 +38,8 @@ namespace StarEventsTicketingSystem.Controllers
             ViewBag.FullName = user?.FullName;
 
             var upcomingEvents = await _context.Events
-                .Where(e => e.Date >= DateTime.Now)
                 .OrderBy(e => e.Date)
-                .Take(5)
-                .ToListAsync();
+                .ToListAsync();  // ✅ Load ALL events (no pagination)
 
             return View("~/Views/Customer/Dashboard/Index.cshtml", upcomingEvents);
         }
@@ -50,7 +48,6 @@ namespace StarEventsTicketingSystem.Controllers
         public IActionResult Events(string searchDate, string searchVenue, string searchOrganizer, int pageNumber = 1, int pageSize = 5)
         {
             var eventsQuery = _context.Events
-                .Where(e => e.Date >= DateTime.Now)
                 .AsQueryable();
 
             // Filter by Date

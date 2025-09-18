@@ -83,6 +83,10 @@
             "Stripe.net": {
               "target": "Package",
               "version": "[48.5.0, )"
+            },
+            "X.PagedList.Mvc.Core": {
+              "target": "Package",
+              "version": "[10.5.9, )"
             }
           },
           "imports": [

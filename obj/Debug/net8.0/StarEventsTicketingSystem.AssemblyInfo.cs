@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StarEventsTicketingSystem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+85fcabc5329d3ab3ffd671b2dad3afbb7c5445e6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9eb403d7b90ced9d4933a587cbe5ea15d2f145d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("StarEventsTicketingSystem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StarEventsTicketingSystem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
