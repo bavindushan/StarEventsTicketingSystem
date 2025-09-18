@@ -162,7 +162,6 @@ namespace StarEventsTicketingSystem.Controllers
 
             await _signInManager.SignOutAsync();
 
-            // 🔹 Audit Log → Logout
             if (!string.IsNullOrEmpty(userId))
             {
                 var auditLogController = new AuditLogController(_context);
@@ -173,7 +172,7 @@ namespace StarEventsTicketingSystem.Controllers
                 );
             }
 
-            return RedirectToAction("Index", "Home");
+            return Redirect("https://localhost:7166/"); // redirect to homepage
         }
     }
 }

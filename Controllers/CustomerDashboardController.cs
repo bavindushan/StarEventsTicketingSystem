@@ -39,7 +39,7 @@ namespace StarEventsTicketingSystem.Controllers
 
             var upcomingEvents = await _context.Events
                 .OrderBy(e => e.Date)
-                .ToListAsync();  // ✅ Load ALL events (no pagination)
+                .ToListAsync(); 
 
             return View("~/Views/Customer/Dashboard/Index.cshtml", upcomingEvents);
         }
@@ -48,6 +48,8 @@ namespace StarEventsTicketingSystem.Controllers
         public IActionResult Events(string searchDate, string searchVenue, string searchOrganizer, int pageNumber = 1, int pageSize = 5)
         {
             var eventsQuery = _context.Events
+                .Include(e => e.Venue)
+                .Include(e => e.Organizer)
                 .AsQueryable();
 
             // Filter by Date
@@ -150,20 +152,30 @@ namespace StarEventsTicketingSystem.Controllers
         }
 
         // GET: /CustomerDashboard/Profile
+        // GET: /CustomerDashboard/Profile
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
-            return View("~/Views/Customer/Dashboard/Profile.cshtml", new ChangePasswordViewModel());
+
+            var model = new CustomerProfileViewModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Address = user.Address
+            };
+
+            return View("~/Views/Customer/Dashboard/Profile.cshtml", model);
         }
 
-        // POST: /CustomerDashboard/ChangePassword
+        // POST: /CustomerDashboard/UpdateProfile
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        public async Task<IActionResult> UpdateProfile(CustomerProfileViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View("~/Views/Customer/Dashboard/Profile.cshtml", model);
+                TempData["Error"] = "Invalid input. Please check the fields.";
+                return RedirectToAction("Profile");
             }
 
             var user = await _userManager.GetUserAsync(User);
@@ -172,11 +184,46 @@ namespace StarEventsTicketingSystem.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            // Update info
+            user.FullName = model.FullName;
+            user.Address = model.Address;
+
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            // Audit log
+            var auditLogController = new AuditLogController(_context);
+            await auditLogController.InsertLog(
+                userId: user.Id,
+                action: AuditLogAction.UpdateProfile,
+                details: "Customer updated their profile information."
+            );
+
+            TempData["Success"] = "Profile updated successfully!";
+            return RedirectToAction("Profile");
+        }
+
+        // POST: /CustomerDashboard/ChangePassword
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(CustomerProfileViewModel model)
+        {
+            if (string.IsNullOrEmpty(model.OldPassword) || string.IsNullOrEmpty(model.NewPassword))
+            {
+                TempData["Error"] = "Please fill in all password fields.";
+                return RedirectToAction("Profile");
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
 
             if (result.Succeeded)
             {
-                // ✅ Audit log: Password changed
                 var auditLogController = new AuditLogController(_context);
                 await auditLogController.InsertLog(
                     userId: user.Id,
@@ -184,16 +231,12 @@ namespace StarEventsTicketingSystem.Controllers
                     details: "Customer changed their password."
                 );
 
-                TempData["SuccessMessage"] = "Password changed successfully.";
+                TempData["Success"] = "Password changed successfully.";
                 return RedirectToAction("Profile");
             }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error.Description);
-            }
-
-            return View("~/Views/Customer/Dashboard/Profile.cshtml", model);
+            TempData["Error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            return RedirectToAction("Profile");
         }
 
         // GET: /CustomerDashboard/EventDetails/{id}

@@ -19,6 +19,11 @@
                 <li class="nav-item mb-2">
                     <a class="nav-link" asp-controller="OrganizerDashboard" asp-action="Profile">👤 Profile</a>
                 </li>
+                <li class="nav-item">
+                    <form method="post" asp-controller="Account" asp-action="Logout">
+                        <button type="submit" class="btn btn-danger w-100">🚪 Logout</button>
+                    </form>
+                </li>
             </ul>
         </div>
 

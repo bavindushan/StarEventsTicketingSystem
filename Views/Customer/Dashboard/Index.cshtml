@@ -20,7 +20,7 @@
                 <a class="nav-link text-white" href="@Url.Action("Profile", "CustomerDashboard")">👤 Profile</a>
             </li>
             <li class="nav-item">
-                <form method="post" action="@Url.Action("Logout", "Account")">
+                <form method="post" asp-controller="Account" asp-action="Logout">
                     <button type="submit" class="btn btn-danger w-100">🚪 Logout</button>
                 </form>
             </li>

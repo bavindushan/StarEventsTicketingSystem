@@ -1,44 +1,96 @@
-﻿@model StarEventsTicketingSystem.ViewModels.ChangePasswordViewModel
+﻿@model StarEventsTicketingSystem.ViewModels.CustomerProfileViewModel
 
 @{
     ViewData["Title"] = "My Profile";
 }
 
-<div class="container py-4">
-    <h2>My Profile</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">👤 My Profile</h2>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-    }
-
-    <form asp-action="ChangePassword" method="post">
-        @Html.AntiForgeryToken()
-
-        <div class="mb-3">
-            <label asp-for="CurrentPassword" class="form-label"></label>
-            <input asp-for="CurrentPassword" class="form-control" />
-            <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+    <!-- General Info -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            Update General Information
         </div>
+        <div class="card-body">
+            <form asp-action="UpdateProfile" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
 
-        <div class="mb-3">
-            <label asp-for="NewPassword" class="form-label"></label>
-            <input asp-for="NewPassword" class="form-control" />
-            <span asp-validation-for="NewPassword" class="text-danger"></span>
+                <div class="mb-3">
+                    <label for="FullName" class="form-label">Full Name</label>
+                    <input asp-for="FullName" class="form-control" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Address" class="form-label">Address</label>
+                    <input asp-for="Address" class="form-control" />
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success">💾 Save Changes</button>
+            </form>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label asp-for="ConfirmNewPassword " class="form-label"></label>
-            <input asp-for="ConfirmNewPassword " class="form-control" />
-            <span asp-validation-for="ConfirmNewPassword " class="text-danger"></span>
+    <!-- Password Section -->
+    <div class="card">
+        <div class="card-header bg-warning">
+            Change Password
         </div>
+        <div class="card-body">
+            <form asp-action="ChangePassword" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
 
-        <button type="submit" class="btn btn-primary">Change Password</button>
-    </form>
+                <div class="mb-3">
+                    <label for="OldPassword" class="form-label">Old Password</label>
+                    <input asp-for="OldPassword" class="form-control" type="password" />
+                    <span asp-validation-for="OldPassword" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="NewPassword" class="form-label">New Password</label>
+                    <input asp-for="NewPassword" class="form-control" type="password" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label for="ConfirmPassword" class="form-label">Confirm New Password</label>
+                    <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">🔑 Update Password</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: '@TempData["Success"]'
+                    });
+            </text>
+        }
+        else if (TempData["Error"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: '@TempData["Error"]'
+                    });
+            </text>
+        }
+    </script>
 }

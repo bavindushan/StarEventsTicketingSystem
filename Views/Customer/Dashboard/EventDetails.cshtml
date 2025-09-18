@@ -53,6 +53,15 @@
                                value="1" required />
                     </div>
 
+                    <div class="mb-3">
+                        <label for="DiscountCode" class="form-label">Discount Code</label>
+                        <div class="input-group">
+                            <input type="text" id="DiscountCode" class="form-control" placeholder="Enter discount code" />
+                            <button type="button" id="btnApplyDiscount" class="btn btn-outline-primary">Try Discount</button>
+                        </div>
+                        <div id="discountMessage" class="mt-2"></div>
+                    </div>
+
                     <p><strong>Ticket Price:</strong> USD @Model.TicketPrice.ToString("N2")</p>
                     <p><strong>Total Amount:</strong> USD <span id="totalAmount">@Model.TicketPrice.ToString("N2")</span></p>
 
@@ -158,5 +167,16 @@
                 alert('An error occurred while booking. Please try again.');
             }
         });
+
+                // Fake Discount Code Handling
+        document.getElementById('btnApplyDiscount').addEventListener('click', () => {
+            const discountMessage = document.getElementById('discountMessage');
+            discountMessage.innerHTML = `
+                <div class="alert alert-danger p-2 mt-2">
+                    ❌ Wrong discount code. Please try again.
+                </div>
+            `;
+        });
+
     </script>
 }
