@@ -4,8 +4,9 @@
     ViewData["Title"] = "Login - Star Events";
 }
 
-<div class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
-    <div class="card shadow-lg border-0 rounded-4" style="max-width: 600px; width: 100%;">
+<!-- Background Wrapper -->
+<div class="d-flex justify-content-center align-items-center min-vh-100 login-bg">
+    <div class="card shadow-lg border-0 rounded-4" style="max-width: 600px; width: 100%; background: #fff;">
         <div class="card-body p-5">
             <!-- Header -->
             <div class="text-center mb-4">
@@ -100,9 +101,27 @@
 
 <!-- Styles -->
 <style>
+    /* Background with image + overlay */
+    .login-bg {
+        background: url('/images/event-bg.jpg') no-repeat center center/cover;
+        position: relative;
+    }
+
+        .login-bg::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4); /* dark overlay */
+            z-index: 1;
+        }
+
     .card {
-        background: #fff;
-        backdrop-filter: blur(8px);
+        position: relative;
+        z-index: 2;
+        background: #fff !important;
     }
 
     .form-control:focus {
@@ -145,31 +164,25 @@
             input: "checkbox",
             inputValue: 0,
             inputPlaceholder: "I agree with the terms and conditions",
-            confirmButtonText: "Continue <i class='fa fa-arrow-right'></i>",
+            confirmButtonText: "Continue",
             inputValidator: (result) => {
                 return !result && "You need to agree with T&C";
             }
         });
 
         if (accept) {
-            // Show toast after login
             const Toast = Swal.mixin({
                 toast: true,
                 position: "top-end",
                 showConfirmButton: false,
                 timer: 3000,
                 timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.onmouseenter = Swal.stopTimer;
-                    toast.onmouseleave = Swal.resumeTimer;
-                }
             });
             Toast.fire({
                 icon: "success",
                 title: "Signed in successfully"
             });
 
-            // actually submit the form now
             e.target.submit();
         }
     });
@@ -178,4 +191,5 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 }
