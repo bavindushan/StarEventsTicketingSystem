@@ -78,6 +78,9 @@ namespace StarEventsTicketingSystem.Controllers
                             AuditLogAction.Payment,
                             $"Payment successful for booking ID {booking.BookingID}, Event: {booking.Event.EventName}, Amount: {booking.TotalAmount}"
                         );
+
+                        // Award loyalty point
+                        await AddLoyaltyPointAsync(booking.UserID);
                     }
                 }
 
@@ -98,5 +101,34 @@ namespace StarEventsTicketingSystem.Controllers
             byte[] qrBytes = qrCode.GetGraphic(20);
             return $"data:image/png;base64,{Convert.ToBase64String(qrBytes)}";
         }
+
+        // ✅ Method to add 1 loyalty point after successful payment
+        private async Task AddLoyaltyPointAsync(string userId)
+        {
+            var loyalty = await _context.LoyaltyPoints
+                .FirstOrDefaultAsync(lp => lp.UserID == userId);
+
+            if (loyalty == null)
+            {
+                // Create new record if user doesn't have loyalty points yet
+                loyalty = new LoyaltyPoints
+                {
+                    UserID = userId,
+                    Points = 1,
+                    LastUpdated = DateTime.Now
+                };
+                _context.LoyaltyPoints.Add(loyalty);
+            }
+            else
+            {
+                // Increment existing points
+                loyalty.Points += 1;
+                loyalty.LastUpdated = DateTime.Now;
+                _context.LoyaltyPoints.Update(loyalty);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

@@ -56,6 +56,15 @@
                     <p><strong>Ticket Price:</strong> USD @Model.TicketPrice.ToString("N2")</p>
                     <p><strong>Total Amount:</strong> USD <span id="totalAmount">@Model.TicketPrice.ToString("N2")</span></p>
 
+                    <!-- Loyalty Points Alert -->
+                    @if (ViewBag.LoyaltyPoints != null)
+                    {
+                        <div class="alert alert-info">
+                            You currently have <strong>@ViewBag.LoyaltyPoints</strong> loyalty points!
+                            <br /> (You’ll earn +1 more point after this payment.)
+                        </div>
+                    }
+
                     <button type="submit" class="btn btn-success w-100"
                     @((ViewBag.AvailableTickets ?? 0) == 0 ? "disabled" : "")>
                         Confirm & Pay Online

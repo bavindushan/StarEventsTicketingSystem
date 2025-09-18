@@ -208,6 +208,15 @@ namespace StarEventsTicketingSystem.Controllers
 
             var user = await _userManager.GetUserAsync(User);
 
+            // Get loyalty points for the logged-in customer
+            if (user != null)
+            {
+                var loyalty = await _context.LoyaltyPoints
+                    .FirstOrDefaultAsync(lp => lp.UserID == user.Id);
+
+                ViewBag.LoyaltyPoints = loyalty?.Points ?? 0;
+            }
+
             // Audit log: Customer viewed event details
             if (user != null)
             {
@@ -243,6 +252,11 @@ namespace StarEventsTicketingSystem.Controllers
 
                 ViewBag.UserBookings = userBookings;
                 ViewBag.UserTotalAmount = userBookings.Sum(b => b.TotalAmount);
+
+                // ✅ Loyalty points
+                var loyalty = await _context.LoyaltyPoints
+                    .FirstOrDefaultAsync(lp => lp.UserID == user.Id);
+                ViewBag.LoyaltyPoints = loyalty?.Points ?? 0;
             }
 
             return View("~/Views/Customer/Dashboard/EventDetails.cshtml", ev);
