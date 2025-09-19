@@ -7,6 +7,9 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark admin-navbar shadow-lg">
     <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" asp-controller="Admin" asp-action="Dashboard">
+            Admin Panel
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav" aria-controls="adminNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -48,28 +51,28 @@
         <div class="col-md-3">
             <div class="stat-card glassy-card text-center p-3 shadow-lg">
                 <i class="bi bi-people fs-2 text-primary"></i>
-                <h6 class="mt-2 text-muted ">Users</h6>
+                <h6 class="mt-2 text-warning">Users</h6>
                 <h4 class="fw-bold counter" data-target="@ViewBag.TotalUsers">0</h4>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card glassy-card text-center p-3 shadow-lg">
                 <i class="bi bi-calendar-check fs-2 text-success"></i>
-                <h6 class="mt-2 text-muted">Events</h6>
+                <h6 class="mt-2 text-warning">Events</h6>
                 <h4 class="fw-bold counter" data-target="@ViewBag.TotalEvents">0</h4>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card glassy-card text-center p-3 shadow-lg">
                 <i class="bi bi-ticket-perforated fs-2 text-warning"></i>
-                <h6 class="mt-2 text-muted">Tickets</h6>
+                <h6 class="mt-2 text-warning">Tickets</h6>
                 <h4 class="fw-bold counter" data-target="@ViewBag.TotalTickets">0</h4>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card glassy-card text-center p-3 shadow-lg">
                 <i class="bi bi-cart-check fs-2 text-danger"></i>
-                <h6 class="mt-2 text-muted">Bookings</h6>
+                <h6 class="mt-2 text-warning">Bookings</h6>
                 <h4 class="fw-bold counter" data-target="@ViewBag.TotalBookings">0</h4>
             </div>
         </div>
@@ -85,8 +88,8 @@
                 <button class="btn btn-sm btn-danger ms-2 rounded-3" onclick="downloadPDF()">Download PDF</button>
             </div>
         </div>
-        <div class="card-body">
-            <table id="auditLogTable" class="table table-hover align-middle">
+        <div class="card-body table-responsive glassy-table shadow-lg">
+            <table id="auditLogTable" class="table table-hover align-middle table mb-0 text-white">
                 <thead class="table-light">
                     <tr>
                         <th>Date</th>
@@ -162,6 +165,32 @@
     .card-header.bg-gradient {
         background: linear-gradient(135deg, #667eea, #764ba2);
     }
+
+    /* Glassy Table */
+    .glassy-table {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        overflow: hidden;
+        color: #fff;
+    }
+
+        .glassy-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .glassy-table th,
+        .glassy-table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .glassy-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transition: 0.3s;
+        }
+
 </style>
 
 @section Scripts {

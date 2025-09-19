@@ -13,6 +13,9 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark admin-navbar shadow-lg">
     <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" asp-controller="Admin" asp-action="Dashboard">
+            Admin Panel
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav" aria-controls="adminNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -56,6 +59,7 @@
     <!-- Event Filters -->
     <form method="get" class="row mb-4 ">
         <div class="col-md-3">
+            <lable class="text-warning">select event</lable>
             <select name="searchName" class="form-control">
                 <option value="">-- Select Event --</option>
                 @foreach (var name in eventNames)
@@ -65,6 +69,7 @@
             </select>
         </div>
         <div class="col-md-3">
+            <lable class="text-warning">select location</lable>
             <select name="location" class="form-control">
                 <option value="">-- Select Location --</option>
                 @foreach (var loc in locations)
@@ -74,6 +79,7 @@
             </select>
         </div>
         <div class="col-md-2">
+            <lable class="text-warning">select category</lable>
             <select name="category" class="form-control">
                 <option value="">-- Select Category --</option>
                 @foreach (var cat in categories)
@@ -83,9 +89,10 @@
             </select>
         </div>
         <div class="col-md-2">
+            <lable class="text-warning">select date</lable>
             <input type="date" name="date" class="form-control" />
         </div>
-        <div class="col-md-2">
+        <div class="col-md-2 mt-4">
             <button type="submit" class="btn btn-primary w-100">Filter</button>
         </div>
     </form>

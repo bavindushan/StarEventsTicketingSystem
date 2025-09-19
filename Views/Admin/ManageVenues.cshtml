@@ -6,6 +6,9 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark admin-navbar shadow-lg">
     <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" asp-controller="Admin" asp-action="Dashboard">
+            Admin Panel
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav" aria-controls="adminNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -47,32 +50,34 @@
     </div>
 
     <!-- Venues Table -->
-    <table class="table table-bordered table-hover">
-        <thead class="table-light">
-            <tr>
-                <th>Venue Name</th>
-                <th>Address</th>
-                <th>City</th>
-                <th>Capacity</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var venue in Model)
-            {
+    <divc class="table-responsive glassy-table">
+        <table class="table table-bordered table-hover table mb-0 text-white ">
+            <thead class="table-light">
                 <tr>
-                    <td>@venue.VenueName</td>
-                    <td>@venue.Address</td>
-                    <td>@venue.City</td>
-                    <td>@venue.Capacity</td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" onclick="editVenue(@venue.VenueID)">Edit</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteVenue(@venue.VenueID)">Delete</button>
-                    </td>
+                    <th>Venue Name</th>
+                    <th>Address</th>
+                    <th>City</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var venue in Model)
+                {
+                    <tr>
+                        <td>@venue.VenueName</td>
+                        <td>@venue.Address</td>
+                        <td>@venue.City</td>
+                        <td>@venue.Capacity</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editVenue(@venue.VenueID)">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteVenue(@venue.VenueID)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </divc>
 </div>
 
 <!-- Add Venue Modal -->
@@ -154,6 +159,30 @@
 
 <!-- Custom Styles -->
 <style>
+    /* Glassy Table */
+    .glassy-table {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        overflow: hidden;
+        color: #fff;
+    }
+
+        .glassy-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .glassy-table th,
+        .glassy-table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .glassy-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transition: 0.3s;
+        }
 
     /* Navbar */
     .admin-navbar {
