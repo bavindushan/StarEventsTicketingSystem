@@ -12,12 +12,105 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
+<!-- Styles -->
+<style>
+    /* Navbar */
+    .admin-navbar {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+    }
+
+        .admin-navbar .nav-link {
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+            .admin-navbar .nav-link:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                transform: translateY(-2px);
+            }
+
+    /* Glassy Cards */
+    .glassy-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px);
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.3s ease;
+        color: #fff;
+    }
+
+        .glassy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    /* Glassy Table */
+    .glassy-table {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        overflow: hidden;
+        color: #fff;
+    }
+
+        .glassy-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .glassy-table th,
+        .glassy-table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .glassy-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transition: 0.3s;
+        }
+</style>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark admin-navbar shadow-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-white" asp-controller="OrganizerDashboard" asp-action="Index">
+            Organizer Panel
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#organizerNav" aria-controls="organizerNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="organizerNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white" asp-controller="OrganizerDashboard" asp-action="Index">Dashboard</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white" asp-controller="OrganizerDashboard" asp-action="Events">Manage Events</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white" asp-controller="OrganizerDashboard" asp-action="Sales">Sales & Revenue</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a class="nav-link text-white" asp-controller="OrganizerDashboard" asp-action="Profile">Profile</a>
+                </li>
+            </ul>
+            <form method="post" asp-controller="Account" asp-action="Logout" class="d-flex">
+                <button type="submit" class="btn btn-danger rounded-3 fw-semibold">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
 <div class="container mt-4">
-    <h2>Sales & Revenue</h2>
+    <h2 class="text-warning text-center">Sales & Revenue</h2>
 
     <div class="row g-3 align-items-end mb-4">
         <div class="col-md-4">
-            <label class="form-label">Select event</label>
+            <label class="form-label text-warning">Select event</label>
             <select id="eventSelect" class="form-select">
                 <option value="">-- Select event --</option>
                 @foreach (var ev in events)
@@ -28,15 +121,17 @@
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">From</label>
+            <label class="form-label text-warning">From</label>
             <input id="fromDate" type="date" class="form-control" />
         </div>
 
         <div class="col-md-3">
-            <label class="form-label">To</label>
+            <label class="form-label text-warning">To</label>
             <input id="toDate" type="date" class="form-control" />
         </div>
     </div>
+
+    <div id="noData" class="alert alert-info d-none">No sales data for selected event / date range.</div>
 
     <div class="card mb-4">
         <div class="card-body">
@@ -44,7 +139,6 @@
         </div>
     </div>
 
-    <div id="noData" class="alert alert-info d-none">No sales data for selected event / date range.</div>
 
     <div id="dataTableContainer" class="card d-none">
         <div class="card-body">
@@ -56,23 +150,25 @@
                 </div>
             </div>
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Tickets Sold</th>
-                        <th>Revenue</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTableBody"></tbody>
-                <tfoot>
-                    <tr>
-                        <th>Total</th>
-                        <th id="totalTickets">0</th>
-                        <th id="totalRevenue">$0.00</th>
-                    </tr>
-                </tfoot>
-            </table>
+            <div class="table-responsive glassy-table shadow-lg">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Tickets Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <th id="totalTickets">0</th>
+                            <th id="totalRevenue">$0.00</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
 </div>
