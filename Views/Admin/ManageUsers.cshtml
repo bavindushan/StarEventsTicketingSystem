@@ -46,6 +46,7 @@
 
             <!-- Filter by Role -->
             <div class="mb-3">
+                <label class="form-label text-warning">Select Role</label>
                 <select id="roleFilter" class="form-select w-auto d-inline-block">
                     <option value="">All Roles</option>
                     @foreach (var role in ViewBag.Roles as List<Microsoft.AspNetCore.Identity.IdentityRole>)
