@@ -5,7 +5,46 @@
     ViewData["Title"] = "Event Details";
 }
 
-<div class="container py-5">
+<!-- Styles -->
+<style>
+    /* Navbar */
+    .admin-navbar {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+    }
+
+        .admin-navbar .nav-link {
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+            .admin-navbar .nav-link:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                transform: translateY(-2px);
+            }
+
+    /* Glassy Cards */
+    .glassy-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px);
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.3s ease;
+        color: aliceblue;
+    }
+
+        .glassy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-header.bg-gradient {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+</style>
+
+<div class="container py-5 glassy-card">
     <h2>@Model.EventName</h2>
     <hr />
 
@@ -22,7 +61,7 @@
         </div>
 
         <div class="col-md-4">
-            <h4>Book Tickets</h4>
+            <h4 class="text-warning">Book Tickets</h4>
             <button id="btnBookNow"
                     class="btn btn-primary w-100"
                     data-eventid="@Model.EventID"
