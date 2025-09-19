@@ -5,20 +5,88 @@
     ViewBag.Title = "Browse Events";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<!-- Styles -->
+<style>
+    /* Navbar */
+    .admin-navbar {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+    }
+
+        .admin-navbar .nav-link {
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+            .admin-navbar .nav-link:hover {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                transform: translateY(-2px);
+            }
+
+    /* Glassy Cards */
+    .glassy-card {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(12px);
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.3s ease;
+        color: aliceblue;
+    }
+
+        .glassy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-header.bg-gradient {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+</style>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark admin-navbar shadow-lg">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#customerNav" aria-controls="customerNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="customerNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="@Url.Action("Index", "CustomerDashboard")">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="@Url.Action("Events", "CustomerDashboard")">Browse Events</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="@Url.Action("BookingHistory", "CustomerDashboard")">Booking History</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="@Url.Action("Profile", "CustomerDashboard")">Profile</a>
+                </li>
+            </ul>
+            <form method="post" asp-controller="Account" asp-action="Logout" class="d-flex">
+                <button type="submit" class="btn btn-danger rounded-3 fw-semibold">
+                    <i class="bi bi-box-arrow-right me-1"></i> Logout
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
 
 <div class="container mt-4">
-    <h2 class="mb-4 text-center">🎫 Browse Upcoming Events</h2>
+    <h2 class="mb-4 text-center text-warning">Browse Upcoming Events</h2>
 
     <!-- Filters -->
     <form method="get" asp-action="Events" class="row g-3 mb-4">
         <div class="col-md-3">
-            <label for="dateFilter" class="form-label">Date</label>
+            <label for="dateFilter" class="form-label text-warning">Date</label>
             <input type="date" id="dateFilter" name="searchDate" class="form-control"
                    value="@(ViewBag.SearchDate ?? "")" />
         </div>
 
         <div class="col-md-3">
-            <label for="venueFilter" class="form-label">Venue</label>
+            <label for="venueFilter" class="form-label text-warning">Venue</label>
             <select id="venueFilter" name="searchVenue" class="form-select">
                 <option value="">All Venues</option>
                 @foreach (var venue in ViewBag.Venues as List<string>)
@@ -36,7 +104,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="organizerFilter" class="form-label">Organizer</label>
+            <label for="organizerFilter" class="form-label text-warning">Organizer</label>
             <select id="organizerFilter" name="searchOrganizer" class="form-select">
                 <option value="">All Organizers</option>
                 @foreach (var organizer in ViewBag.Organizers as List<string>)
@@ -65,10 +133,10 @@
             foreach (var ev in Model)
             {
                 <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm h-100 border-0 rounded-3">
+                    <div class="card shadow-sm h-100 border-0 rounded-3 glassy-card">
                         
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@ev.EventName</h5>
+                            <h5 class="card-title text-center">@ev.EventName</h5>
                             <p class="card-text"><strong>Date:</strong> @ev.Date.ToString("MMMM dd, yyyy")</p>
                             <p class="card-text"><strong>Venue:</strong> @ev.Venue.VenueName</p>
                             <a asp-action="EventDetails" asp-route-id="@ev.EventID"
