@@ -24,7 +24,7 @@ StripeConfiguration.ApiKey = stripeSettings["SecretKey"];
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
-// Register ApplicationDbContext with SQL Server
+// Register ApplicationDbContext with SQL Server (or Azure MySQL via Pomelo)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -47,15 +47,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-// Optional: Dependency injection for utilities / custom services
-// builder.Services.AddScoped<IEmailValidator, EmailValidator>();
-// builder.Services.AddScoped<IPhoneValidator, PhoneValidator>();
-
 var app = builder.Build();
 
-// Seed roles
+// ====== Run EF Core migrations automatically ======
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate(); // This applies any pending migrations
+
+    // Seed roles
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     await RoleSeeder.SeedRolesAsync(roleManager);
 }
