@@ -11,10 +11,12 @@ namespace StarEventsTicketingSystem.Models
         public int BookingID { get; set; }
 
         [Required]
-        public string UserID { get; set; }   // Foreign key to User
+        public string UserID { get; set; }   
+        // Foreign key to User
 
         [Required]
-        public int EventID { get; set; }  // Foreign key to Event
+        public int EventID { get; set; }  
+        // Foreign key to Event
 
         [Required]
         public DateTime BookingDate { get; set; } = DateTime.Now;
@@ -24,7 +26,8 @@ namespace StarEventsTicketingSystem.Models
         public decimal TotalAmount { get; set; }
 
         [MaxLength(20)]
-        public required string Status { get; set; } // e.g., Confirmed, Pending, Cancelled
+        public required string Status { get; set; } 
+        // Confirmed, Pending, Cancelled
 
         // Navigation properties
         [ForeignKey("UserID")]

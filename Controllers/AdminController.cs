@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace StarEventsTicketingSystem.Controllers
 {
-    [Authorize(Roles = "Admin")] // ✅ Only Admin can access
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

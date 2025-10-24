@@ -1,0 +1,226 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subscriptionId": {
+            "type": "string"
+        },
+        "resourceGroupName": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        },
+        "webAppName": {
+            "type": "string"
+        },
+        "hostingPlanName": {
+            "type": "string"
+        },
+        "oidcIdentityName": {
+            "type": "string"
+        },
+        "linuxFxVersion": {
+            "type": "string"
+        },
+        "repoUrl": {
+            "type": "string"
+        },
+        "branch": {
+            "type": "string"
+        },
+        "mySqlServerName": {
+            "type": "string"
+        },
+        "mySqlAdminUsername": {
+            "type": "string"
+        },
+        "mySqlAdminPassword": {
+            "type": "securestring"
+        },
+        "mySqlDatabaseName": {
+            "type": "string"
+        },
+        "vnetName": {
+            "type": "string"
+        },
+        "outboundSubnetName": {
+            "type": "string"
+        },
+        "outboundSubnetPrefix": {
+            "type": "string"
+        },
+        "privateDnsZoneName": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-07-01",
+            "name": "[parameters('vnetName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('outboundSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('outboundSubnetPrefix')]",
+                            "delegations": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2022-03-01",
+            "name": "[parameters('hostingPlanName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "B_1ms",
+                "tier": "Burstable",
+                "capacity": 1
+            },
+            "properties": {
+                "reserved": true
+            }
+        },
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2023-01-31-preview",
+            "name": "[parameters('oidcIdentityName')]",
+            "location": "[parameters('location')]"
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2022-03-01",
+            "name": "[parameters('webAppName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('oidcIdentityName'))]"
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('oidcIdentityName'))]": {}
+                }
+            },
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]",
+                "siteConfig": {
+                    "linuxFxVersion": "[parameters('linuxFxVersion')]",
+                    "alwaysOn": true
+                },
+                "httpsOnly": true,
+                "clientAffinityEnabled": false,
+                "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('outboundSubnetName'))]"
+            },
+            "resources": [
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "2020-12-01",
+                    "name": "web",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/Sites', parameters('webAppName'))]",
+                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('oidcIdentityName'))]"
+                    ],
+                    "properties": {
+                        "RepoUrl": "[parameters('repoUrl')]",
+                        "branch": "[parameters('branch')]",
+                        "isGitHubAction": true,
+                        "gitHubActionConfiguration": {
+                            "generateWorkflowFile": true,
+                            "workflowSettings": {
+                                "appType": "webapp",
+                                "authType": "oidc",
+                                "os": "linux",
+                                "runtimeStack": "dotnet",
+                                "slotName": "Production",
+                                "variables": {
+                                    "resourceGroup": "[parameters('resourceGroupName')]",
+                                    "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('oidcIdentityName')), '2023-01-31-preview').clientId]",
+                                    "tenantId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('oidcIdentityName')), '2023-01-31-preview').tenantId]"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.DBforMySQL/flexibleServers",
+            "apiVersion": "2021-05-01",
+            "name": "[parameters('mySqlServerName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "B_1ms",
+                "tier": "Burstable",
+                "capacity": 1
+            },
+            "properties": {
+                "administratorLogin": "[parameters('mySqlAdminUsername')]",
+                "administratorLoginPassword": "[parameters('mySqlAdminPassword')]",
+                "version": "8.0",
+                "publicNetworkAccess": "Disabled",
+                "haEnabled": "Disabled",
+                "storageProfile": {
+                    "storageMB": 51200,
+                    "backupRetentionDays": 7,
+                    "geoRedundantBackup": "Disabled",
+                    "storageAutogrow": "Enabled"
+                }
+            },
+            "resources": [
+                {
+                    "type": "databases",
+                    "apiVersion": "2021-05-01",
+                    "name": "[parameters('mySqlDatabaseName')]",
+                    "properties": {
+                        "charset": "utf8",
+                        "collation": "utf8_general_ci"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2018-09-01",
+            "name": "[parameters('privateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2021-02-01",
+            "name": "[concat(parameters('webAppName'), '-pe')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/flexibleServers', parameters('mySqlServerName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('outboundSubnetName'))]"
+            ],
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('outboundSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "mysqlConnection",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.DBforMySQL/flexibleServers', parameters('mySqlServerName'))]",
+                            "groupIds": [
+                                "mysqlServer"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

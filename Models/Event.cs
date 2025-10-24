@@ -19,7 +19,8 @@ namespace StarEventsTicketingSystem.Models
         public string EventName { get; set; }
 
         [Required]
-        public EventCategory Category { get; set; } // Enum: Concert, Theatre, Cultural, etc.
+        public EventCategory Category { get; set; } 
+        // Enum: Concert, Theatre, Cultural, etc.
 
         [Required]
         public DateTime Date { get; set; }
@@ -29,7 +30,7 @@ namespace StarEventsTicketingSystem.Models
 
         // FK to Venue
         [Required(ErrorMessage = "Venue is required")]
-        public int VenueID { get; set; } // make it non-nullable
+        public int VenueID { get; set; } 
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TicketPrice { get; set; }

@@ -25,7 +25,7 @@ namespace StarEventsTicketingSystem.Models
         public required string PaymentStatus { get; set; }
 
         [MaxLength(100)]
-        public string? StripeSessionId { get; set; }  // <-- added
+        public string? StripeSessionId { get; set; } 
 
         // Navigation property
         [ForeignKey(nameof(BookingID))]

@@ -10,15 +10,18 @@ namespace StarEventsTicketingSystem.Models
         public int DiscountID { get; set; }
 
         [Required]
-        public int EventID { get; set; } // Foreign key to Event
+        public int EventID { get; set; } 
+        // Foreign key to Event
 
         [Required, MaxLength(50)]
-        public required string Code { get; set; } // Discount code
+        public required string Code { get; set; } 
+        // Discount code
 
         [Required]
         [Range(0, 100)]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal DiscountPercentage { get; set; } // e.g., 10.0 for 10%
+        public decimal DiscountPercentage { get; set; } 
+        //  10.0 for 10%
 
         [Required]
         public DateTime StartDate { get; set; }
@@ -26,7 +29,7 @@ namespace StarEventsTicketingSystem.Models
         [Required]
         public DateTime EndDate { get; set; }
 
-        // Navigation property: One Event can have many Discounts
+        // Navigation property One Event can have many Discounts
         [ForeignKey("EventID")]
         public virtual Event Event { get; set; }
     }

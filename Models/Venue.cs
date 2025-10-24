@@ -18,7 +18,8 @@ namespace StarEventsTicketingSystem.Models
         public required string City { get; set; }
 
         [Required]
-        public int Capacity { get; set; }  // Changed from string to int for proper seat count
+        public int Capacity { get; set; }  
+        // Changed from string to int for proper seat count
 
         // Navigation property for related events
         public virtual ICollection<Event> Events { get; set; } = new List<Event>();

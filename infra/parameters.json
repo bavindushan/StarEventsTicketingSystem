@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subscriptionId": {
+            "value": "d75ed00c-1a24-4247-9932-c0682474b5da"
+        },
+        "resourceGroupName": {
+            "value": "StarEvents-RG"
+        },
+        "location": {
+            "value": "southeastasia"
+        },
+        "webAppName": {
+            "value": "starevents-webapp"
+        },
+        "hostingPlanName": {
+            "value": "ASP-StarEventsRG-8027"
+        },
+        "oidcIdentityName": {
+            "value": "starevents-webap-id-8ffb"
+        },
+        "linuxFxVersion": {
+            "value": "DOTNETCORE|8.0"
+        },
+        "repoUrl": {
+            "value": "https://github.com/bavindushan/StarEventsTicketingSystem"
+        },
+        "branch": {
+            "value": "main"
+        },
+        "mySqlServerName": {
+            "value": "starevents-sqlserver"
+        },
+        "mySqlAdminUsername": {
+            "value": "wawrjfflci"
+        },
+        "mySqlAdminPassword": {
+            "value": "Shan@4300"
+        },
+        "mySqlDatabaseName": {
+            "value": "StarEventsDB"
+        },
+        "vnetName": {
+            "value": "vnet-hplbpitb"
+        },
+        "outboundSubnetName": {
+            "value": "subnet-2unlzlnop47j4"
+        },
+        "outboundSubnetPrefix": {
+            "value": "10.0.2.0/24"
+        },
+        "privateDnsZoneName": {
+            "value": "privatelink.mysql.database.azure.com"
+        }
+    }
+}

@@ -12,16 +12,19 @@ namespace StarEventsTicketingSystem.Models
         public int TicketID { get; set; }
 
         [Required]
-        public int BookingID { get; set; }  // Foreign key to Booking
+        public int BookingID { get; set; }  
+        // Foreign key to Booking
 
         [MaxLength(20)]
-        public required string SeatNumber { get; set; }  // Optional, if specific seats
+        public required string SeatNumber { get; set; }  
 
         [Column(TypeName = "nvarchar(max)")]
-        public required string QRCode { get; set; }        // QR code string (Base64 or string)
+        public required string QRCode { get; set; }        
+        // QR code string (Base64 or string)
 
         [Required]
-        public TicketStatus Status { get; set; }  // Enum: Booked, Cancelled
+        public TicketStatus Status { get; set; }  
+        // Enum: Booked, Cancelled
 
         // Navigation property to Booking
         [ForeignKey("BookingID")]

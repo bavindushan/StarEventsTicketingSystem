@@ -10,10 +10,12 @@ namespace StarEventsTicketingSystem.Models
         public int LoyaltyID { get; set; }
 
         [Required]
-        public string UserID { get; set; }  // FK → User.UserID (only for Customers)
+        public string UserID { get; set; }  
+        // FK  User.UserID (only for Customers)
 
         [Required]
-        public int Points { get; set; }  // Current loyalty points
+        public int Points { get; set; }  
+        // Current loyalty points
 
         [Required]
         public DateTime LastUpdated { get; set; } = DateTime.Now;
